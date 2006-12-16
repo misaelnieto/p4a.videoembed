@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: videoembed
+Version: 0.1dev
+Summary: A registry and adapters for converting urls for various video sharing sites into embed codes.
+Home-page: http://svn.plone.org/svn/p4a.videoembed
+Author: Alec Mitchell
+Author-email: apm13@columbia.edu
+License: GPL
+Description: UNKNOWN
+Keywords: Embedded Video Plone
+Platform: UNKNOWN

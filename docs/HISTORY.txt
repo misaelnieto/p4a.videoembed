@@ -1,0 +1,9 @@
+Changelog for videoembed
+
+    (name of developer listed in brackets)
+
+videoembed - 0.1 Unreleased
+
+    - Initial package structure.
+      [zopeskel]
+

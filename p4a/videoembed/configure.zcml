@@ -1,0 +1,83 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+  <utility component=".registry.embed_registry" />
+
+  <adapter
+      for="str"
+      provides=".interfaces.IEmbedCode"
+      factory=".registry.embedCodeAdapter"
+      />
+  
+  <adapter
+      for="str int"
+      provides=".interfaces.IEmbedCode"
+      factory=".registry.embedCodeAdapter"
+      />
+
+  <adapter
+      for="str int"
+      name="youtube"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.youtube_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="onerevver"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.onerevver_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="revver"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.revver_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="googlevideo"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.google_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="vimeo"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.vimeo_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="vmix"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.vmix_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="yahoovideo"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.yahoo_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="blip.tv"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.blip_generator"
+      />
+
+  <browser:page
+      for="*"
+      class=".registry.EmbedCodeView"
+      name="video-embed.htm"
+      attribute="get_code"
+      permission="zope.Public"
+      />
+
+</configure>
