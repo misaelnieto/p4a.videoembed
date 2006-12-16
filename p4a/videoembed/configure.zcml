@@ -72,6 +72,13 @@
       factory=".converters.blip_generator"
       />
 
+  <adapter
+      for="str int"
+      name="ifilm"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.ifilm_generator"
+      />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"

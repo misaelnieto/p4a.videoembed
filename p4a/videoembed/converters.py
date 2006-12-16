@@ -379,5 +379,32 @@ def blip_generator(url, width):
                                                                       height))
     tag.append('</embed>')
     return u''.join(tag)
-
 register_converter('blip.tv', blip_check, 800)
+
+# ifilm
+def ifilm_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('ifilm.com'):
+        return True
+    return False
+
+def ifilm_generator(url, width):
+    """ A quick check for the right url:
+
+    >>> print ifilm_generator('http://www.ifilm.com/video/2690458', width=400)
+    <embed width="400" height="326" src="http://www.ifilm.com/efp" quality="high" bgcolor="000000" name="efp" align="middle" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="flvbaseclip=2690458&"></embed>
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.815*width))
+
+    path_elems = path.split('/')
+    video_id = path_elems.pop(-1)
+    tag.append('<embed width="%s" height="%s" src="http://www.ifilm.com/efp" '
+               'quality="high" bgcolor="000000" name="efp" align="middle" '
+               'type="application/x-shockwave-flash" '
+               'pluginspage="http://www.macromedia.com/go/getflashplayer" '
+               'flashvars="flvbaseclip=%s&">'%(width, height, video_id))
+    tag.append('</embed>')
+    return u''.join(tag)
+register_converter('ifilm', ifilm_check, 900)
