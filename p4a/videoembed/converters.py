@@ -412,7 +412,7 @@ register_converter('ifilm', ifilm_check, 900)
 # myspace
 def myspace_check(url):
     host, path, query, fragment = _break_url(url)
-    if host.endswith('vids.myspace.com') and query.has_key['videoid']:
+    if host.endswith('vids.myspace.com') and query.has_key('videoid'):
         return True
     return False
 
