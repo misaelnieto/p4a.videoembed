@@ -408,3 +408,67 @@ def ifilm_generator(url, width):
     tag.append('</embed>')
     return u''.join(tag)
 register_converter('ifilm', ifilm_check, 900)
+
+# myspace
+def myspace_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('vids.myspace.com') and query.has_key['videoid']:
+        return True
+    return False
+
+def myspace_generator(url, width):
+    """ A quick check for the right url:
+
+    >>> print myspace_generator('http://vids.myspace.com/index.cfm?fuseaction=vids.individual&videoid=1577693374', width=400)
+    <embed src="http://lads.myspace.com/videos/vplayer.swf" flashvars="m=1577693374&type=video" type="application/x-shockwave-flash" width="400" height="322"></embed>
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.805*width))
+
+    video_id = query['videoid']
+    tag.append('<embed src="http://lads.myspace.com/videos/vplayer.swf" '
+               'flashvars="m=%s&type=video" '
+               'type="application/x-shockwave-flash" '
+               'width="%s" height="%s">'%(video_id, width, height))
+    tag.append('</embed>')
+    return u''.join(tag)
+register_converter('myspace', myspace_check, 1000)
+
+# metacafe
+def metacafe_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('metacafe.com'):
+        return True
+    return False
+
+def metacafe_generator(url, width):
+    """ A quick check for the right url:
+
+    >>> print metacafe_generator('http://www.metacafe.com/watch/344239/amazing_singing_parrot/', width=400)
+    <embed src="http://www.metacafe.com/fplayer/344239/amazing_singing_parrot.swf" width="400" height="345" wmode="transparent" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash"></embed>
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.863*width))
+
+    path_elems = path.split('/')
+    last_elem = path_elems.pop(-1)
+    if not last_elem:
+        # in case the url ends with a '/'
+        last_elem = path_elems.pop(-1)
+    video_name = last_elem
+    video_id = path_elems.pop(-1)
+    try:
+        # This should be an integer id if not fail
+        int(video_id)
+    except (ValueError, TypeError):
+        return
+    tag.append('<embed src="http://www.metacafe.com/fplayer/%s/%s.swf" '
+               'width="%s" height="%s" wmode="transparent" '
+               'pluginspage="http://www.macromedia.com/go/getflashplayer" '
+               'type="application/x-shockwave-flash">'%(video_id, video_name, width, height))
+    tag.append('</embed>')
+    return u''.join(tag)
+register_converter('metacafe', metacafe_check, 1100)
+

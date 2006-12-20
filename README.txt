@@ -29,6 +29,8 @@ Vimeo
 Vmix
 Blip.tv
 iFilm
+MySpace
+MetaCafe
 
 But adding more is as simple as creating a function that checks if the url
 is appropriate for the site you want, and another to convert it into an

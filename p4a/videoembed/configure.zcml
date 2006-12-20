@@ -79,6 +79,20 @@
       factory=".converters.ifilm_generator"
       />
 
+  <adapter
+      for="str int"
+      name="myspace"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.myspace_generator"
+      />
+
+  <adapter
+      for="str int"
+      name="metacafe"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.metacafe_generator"
+      />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
