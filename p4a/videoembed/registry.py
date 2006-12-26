@@ -21,7 +21,8 @@ class EmbedConverterEntry(object):
         return self.match_func(url)
 
     def get_code(self, url, width):
-        return getMultiAdapter((url, width), IEmbedCode, name=self.name)
+        return queryMultiAdapter((url, width), IEmbedCode, name=self.name,
+                                     default=None)
 
 
 class EmbedCodeConverterRegistry(object):
