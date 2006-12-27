@@ -350,7 +350,7 @@ register_converter('yahoovideo', yahoo_check, 700)
 # Blip.tv (only accepts direct urls to flv videos!)
 def blip_check(url):
     host, path, query, fragment = _break_url(url)
-    if host.endswith('bilp.tv') and path.endswith('.flv'):
+    if host.endswith('blip.tv') and path.endswith('.flv'):
         return True
     return False
 
