@@ -74,38 +74,46 @@ def onerevver_check(url):
     return False
 
 FINALDIGITS = re.compile(r'.*?(\d+)$')
-WATCHDIGITS = re.compile(r'.*/watch/(\d+)')
+WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/.*?(\d+))?$')
 def onerevver_generator(url, width):
-    ''' A quick check for the right url
-    XXX: Need to add support for affiliate id!
+    """ A quick check for the right url
 
-    >>> print onerevver_generator('http://one.revver.com/watch/1111',
-    ...                         width=400)
-    <embed type="application/x-shockwave-flash" src="http://flash.revver.com/player/1.0/player.swf" pluginspage="http://www.macromedia.com/go/getflashplayer" scale="noScale" salign="TL" bgcolor="#ffffff" flashvars="width=400&height=327&mediaId=1111&affiliateId=&javascriptContext=true&skinURL=http://flash.revver.com/player/1.0/skins/Default_Raster.swf&skinImgURL=http://flash.revver.com/player/1.0/skins/night_skin.png&actionBarSkinURL=http://flash.revver.com/player/1.0/skins/DefaultNavBarSkin.swf&resizeVideo=True" wmode="transparent" height="327" width="400"></embed>
+    >>> print onerevver_generator('http://one.revver.com/something/139266',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:0;height:392;width:480;" type="text/javascript"></script>
 
-    >>> print onerevver_generator('http://one.revver.com/other/1111/12234',
-    ...                         width=400)
-    <embed type="application/x-shockwave-flash" src="http://flash.revver.com/player/1.0/player.swf" pluginspage="http://www.macromedia.com/go/getflashplayer" scale="noScale" salign="TL" bgcolor="#ffffff" flashvars="width=400&height=327&mediaId=12234&affiliateId=&javascriptContext=true&skinURL=http://flash.revver.com/player/1.0/skins/Default_Raster.swf&skinImgURL=http://flash.revver.com/player/1.0/skins/night_skin.png&actionBarSkinURL=http://flash.revver.com/player/1.0/skins/DefaultNavBarSkin.swf&resizeVideo=True" wmode="transparent" height="327" width="400"></embed>
+    >>> print onerevver_generator('http://one.revver.com/watch/139266',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:0;height:392;width:480;" type="text/javascript"></script>
 
-    >>> print onerevver_generator('http://one.revver.com/specialpage#12345',
-    ...                         width=400)
-    <embed type="application/x-shockwave-flash" src="http://flash.revver.com/player/1.0/player.swf" pluginspage="http://www.macromedia.com/go/getflashplayer" scale="noScale" salign="TL" bgcolor="#ffffff" flashvars="width=400&height=327&mediaId=12345&affiliateId=&javascriptContext=true&skinURL=http://flash.revver.com/player/1.0/skins/Default_Raster.swf&skinImgURL=http://flash.revver.com/player/1.0/skins/night_skin.png&actionBarSkinURL=http://flash.revver.com/player/1.0/skins/DefaultNavBarSkin.swf&resizeVideo=True" wmode="transparent" height="327" width="400"></embed>
-    '''
+    >>> print onerevver_generator('http://one.revver.com/other/139266/12234',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:12234;height:392;width:480;" type="text/javascript"></script>
+
+    >>> print onerevver_generator('http://one.revver.com/watch/139266/flv/affiliate/12234',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:12234;height:392;width:480;" type="text/javascript"></script>
+
+    >>> print onerevver_generator('http://one.revver.com/specialpage#139266',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:0;height:392;width:480;" type="text/javascript"></script>
+    """
+
     tag = []
     host, path, query, fragment = _break_url(url)
     video_id = None
     height = int(round(0.817*width))
 
-    path_elems = path.split('/')
-    last_elem = path_elems.pop(-1)
-    if not last_elem:
-        # in case the url ends with a '/'
-        last_elem = path_elems.pop(-1)
     # First look for /watch/######
     match = WATCHDIGITS.search(path)
     if not match:
         # Otherwise take the last digits in the url
         # this seems to be going away
+        path_elems = path.split('/')
+        last_elem = path_elems.pop(-1)
+        if not last_elem:
+            # in case the url ends with a '/'
+            last_elem = path_elems.pop(-1)
         match = FINALDIGITS.match(last_elem)
     if not match and fragment:
         # Sometimes the video_id is the url fragment (strange)
@@ -113,24 +121,20 @@ def onerevver_generator(url, width):
         match = FINALDIGITS.match(fragment)
     if match:
         # Take the first matching value
-        video_id = match.groups()[0]
+        groups =  match.groups()
+        video_id = groups[0]
+        affiliate_id = 0
+        if len(groups) > 1:
+            affiliate_id = groups[-1] or 0
 
     if video_id is None:
         return
-    tag.append('<embed type="application/x-shockwave-flash" '
-               'src="http://flash.revver.com/player/1.0/player.swf" '
-               'pluginspage="http://www.macromedia.com/go/getflashplayer" '
-               'scale="noScale" salign="TL" bgcolor="#ffffff" '
-               'flashvars="width=%(width)s&height=%(height)s&'
-               'mediaId=%(video_id)s&affiliateId=&javascriptContext=true&'
-               'skinURL=http://flash.revver.com/player/1.0/skins/Default_Raster.swf&'
-               'skinImgURL=http://flash.revver.com/player/1.0/skins/night_skin.png&'
-               'actionBarSkinURL=http://flash.revver.com/player/1.0/skins/DefaultNavBarSkin.swf&'
-               'resizeVideo=True" wmode="transparent" height="%(height)s" '
-               'width="%(width)s">'%{'width': width,
-                                     'height': height,
-                                     'video_id': video_id})
-    tag.append('</embed>')
+
+    tag.append('<script src="http://flash.revver.com/player/1.0/player.js?'
+               'mediaId:%s;affiliateId:%s;height:%s;width:%s;"'
+               ' type="text/javascript">'%(video_id, affiliate_id,
+                                           height, width))
+    tag.append('</script>')
     return u''.join(tag)
 register_converter('onerevver', onerevver_check, 200)
 
