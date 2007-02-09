@@ -74,7 +74,7 @@ def onerevver_check(url):
     return False
 
 FINALDIGITS = re.compile(r'.*?(\d+)$')
-WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/.*?(\d+))?$')
+WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/\D+?)?(?:/(\d+))?$')
 def onerevver_generator(url, width):
     """ A quick check for the right url
 
@@ -97,6 +97,10 @@ def onerevver_generator(url, width):
     >>> print onerevver_generator('http://one.revver.com/specialpage#139266',
     ...                         width=480)
     <script src="http://flash.revver.com/player/1.0/player.js?mediaId:139266;affiliateId:0;height:392;width:480;" type="text/javascript"></script>
+
+    >>> print  onerevver_generator('http://one.revver.com/watch/66469/flv',
+    ...                         width=480)
+    <script src="http://flash.revver.com/player/1.0/player.js?mediaId:66469;affiliateId:0;height:392;width:480;" type="text/javascript"></script>
     """
 
     tag = []
