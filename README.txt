@@ -67,13 +67,13 @@ multiadapt:
     from zope.component import getMultiAdapter
     embed_code = getMultiAdapter((url, width), IEmbedCode)
 
-There is also a convenient view provided fro use from restricted code, it
+There is also a convenient view provided for use from restricted code, it
 optionally takes a url and width and returns an embed code.  If the url
 is omitted, then it will try and get one from the context by adapting to
 ILinkProvider (which indicates the presence of a getLink method).
 
        <div class="EmbedCode"
-            tal:define="embed_view nocall:context.@@video-embed.htm;
+            tal:define="embed_view nocall:context/@@video-embed.htm;
                         default_embed embed_view;
                         custom_width python:embed_view(width=500);
                         custom_url python:embed_view(url='http://www.youtube.com/watch?v=1111', width=250)"
