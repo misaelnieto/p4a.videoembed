@@ -250,7 +250,6 @@ def vimeo_generator(url, width):
 
     >>> print vimeo_generator('http://www.vimeo.com/clip:18281', width=400)
     <embed src="http://www.vimeo.com/moogaloop.swf?clip_id=18281" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
-
     """
     tag = []
     host, path, query, fragment = _break_url(url)
@@ -480,3 +479,37 @@ def metacafe_generator(url, width):
     return u''.join(tag)
 register_converter('metacafe', metacafe_check, 1100)
 
+# College Humor (nearly identical to vimeo)
+def collegehumor_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('collegehumor.com'):
+        return True
+    return False
+
+def collegehumor_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print collegehumor_generator('http://www.collegehumor.com/video:1752121', width=400)
+    <embed src="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id=1752121" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.75*width))
+
+    video_id = None
+    try:
+        video_id = int(path.split('%3A')[-1])
+    except ValueError:
+        pass
+    if not video_id:
+        return
+    embed_url = urlunsplit(('http', host, 'moogaloop/moogaloop.swf',
+                            'clip_id=%s'%video_id, ''))
+    tag.append('<embed src="%s" quality="best" scale="exactfit" '
+               'width="%s" height="%s" '
+               'type="application/x-shockwave-flash">'%(embed_url,
+                                                        width,
+                                                        height))
+    tag.append('</embed>')
+    return u''.join(tag)
+register_converter('collegehumor', collegehumor_check, 1200)

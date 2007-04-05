@@ -93,6 +93,13 @@
       factory=".converters.metacafe_generator"
       />
 
+  <adapter
+      for="str int"
+      name="collegehumor"
+      provides=".interfaces.IEmbedCode"
+      factory=".converters.collegehumor_generator"
+      />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
