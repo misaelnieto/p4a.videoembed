@@ -8,135 +8,111 @@
   <adapter
       for="str"
       provides=".interfaces.IEmbedCode"
-      factory=".registry.embedCodeAdapter"
-      />
+      factory=".registry.embedCodeAdapter" />
   
   <adapter
       for="str int"
       provides=".interfaces.IEmbedCode"
-      factory=".registry.embedCodeAdapter"
-      />
+      factory=".registry.embedCodeAdapter" />
 
   <adapter factory=".registry.mediaURLConverter" />
 
+  
   <adapter
-      for="str int"
-      name="youtube"
-      provides=".interfaces.IEmbedCode"
       factory=".converters.youtube_generator"
-      />
-  <utility component=".converters.youtube_check"
-           name="youtube"/>
-  <adapter factory=".converters.youtube_mediaurl"
-           name="youtube"/>
+      name="youtube" />
+  <adapter
+      factory=".converters.youtube_mediaurl"
+      name="youtube" />
+  <utility
+      component=".converters.youtube_check"
+      name="youtube" />
 
   <adapter
-      for="str int"
       name="onerevver"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.onerevver_generator"
-      />
-  <utility component=".converters.onerevver_check"
-           name="onerevver"/>
-  <adapter factory=".converters.onerevver_mediaurl"
-           name="onerevver"/>
+      factory=".converters.onerevver_generator" />
+  <adapter
+      factory=".converters.onerevver_mediaurl"
+      name="onerevver" />
+  <utility
+      component=".converters.onerevver_check"
+      name="onerevver" />
 
   <adapter
-      for="str int"
-      name="revver"
-      provides=".interfaces.IEmbedCode"
       factory=".converters.revver_generator"
-      />
-  <utility component=".converters.revver_check"
-           name="revver"/>
+      name="revver" />
+  <utility
+      component=".converters.revver_check"
+      name="revver" />
 
   <adapter
-      for="str int"
       name="googlevideo"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.google_generator"
-      />
-  <utility component=".converters.google_check"
-           name="googlevideo"/>
+      factory=".converters.google_generator" />
+  <utility
+      component=".converters.google_check"
+      name="googlevideo" />
 
   <adapter
-      for="str int"
       name="vimeo"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.vimeo_generator"
-      />
-  <utility component=".converters.vimeo_check"
-           name="vimeo"/>
+      factory=".converters.vimeo_generator" />
+  <utility
+      component=".converters.vimeo_check"
+      name="vimeo" />
 
   <adapter
-      for="str int"
       name="vmix"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.vmix_generator"
-      />
-  <utility component=".converters.vmix_check"
-           name="vmix"/>
+      factory=".converters.vmix_generator" />
+  <utility
+      component=".converters.vmix_check"
+      name="vmix" />
 
   <adapter
-      for="str int"
       name="yahoovideo"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.yahoo_generator"
-      />
-  <utility component=".converters.yahoo_check"
-           name="yahoovideo"/>
+      factory=".converters.yahoo_generator" />
+  <utility
+      component=".converters.yahoo_check"
+      name="yahoovideo" />
 
   <adapter
-      for="str int"
       name="blip.tv"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.blip_generator"
-      />
-  <utility component=".converters.blip_check"
-           name="blip.tv"/>
+      factory=".converters.blip_generator" />
+  <utility
+      component=".converters.blip_check"
+      name="blip.tv" />
 
   <adapter
-      for="str int"
       name="ifilm"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.ifilm_generator"
-      />
-  <utility component=".converters.ifilm_check"
-           name="ifilm"/>
+      factory=".converters.ifilm_generator" />
+  <utility
+      component=".converters.ifilm_check"
+      name="ifilm" />
 
   <adapter
-      for="str int"
       name="myspace"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.myspace_generator"
-      />
-  <utility component=".converters.myspace_check"
-           name="myspace"/>
+      factory=".converters.myspace_generator" />
+  <utility
+      component=".converters.myspace_check"
+      name="myspace" />
 
   <adapter
-      for="str int"
       name="metacafe"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.metacafe_generator"
-      />
-  <utility component=".converters.metacafe_check"
-           name="metacafe"/>
+      factory=".converters.metacafe_generator" />
+  <utility
+      component=".converters.metacafe_check"
+      name="metacafe" />
 
   <adapter
-      for="str int"
       name="collegehumor"
-      provides=".interfaces.IEmbedCode"
-      factory=".converters.collegehumor_generator"
-      />
-  <utility component=".converters.collegehumor_check"
-           name="collegehumor"/>
+      factory=".converters.collegehumor_generator" />
+  <utility
+      component=".converters.collegehumor_check"
+      name="collegehumor" />
 
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
       name="video-embed.htm"
       attribute="get_code"
-      permission="zope.Public"
-      />
+      permission="zope.Public" />
 
 </configure>

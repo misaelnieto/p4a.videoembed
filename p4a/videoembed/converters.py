@@ -49,6 +49,8 @@ def youtube_check(url):
 
 youtube_check.index = 100
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def youtube_generator(url, width):
     """ A quick check for the right url
 
@@ -130,6 +132,8 @@ def _onerevver_getids(url):
             affiliate_id = groups[-1] or 0
     return video_id, affiliate_id
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def onerevver_generator(url, width):
     """ A quick check for the right url
 
@@ -200,6 +204,8 @@ def revver_check(url):
 
 revver_check.index = 300
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def revver_generator(url, width):
     """ A quick check for the right url
 
@@ -270,6 +276,8 @@ def google_check(url):
 
 google_check.index = 400
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def google_generator(url, width):
     """ A quick check for the right url
 
@@ -300,6 +308,8 @@ def vimeo_check(url):
 
 vimeo_check.index = 500
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def vimeo_generator(url, width):
     """ A quick check for the right url
 
@@ -337,6 +347,8 @@ def vmix_check(url):
 
 vmix_check.index = 600
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def vmix_generator(url, width):
     """ A quick check for the right url
 
@@ -370,6 +382,8 @@ def yahoo_check(url):
 
 yahoo_check.index = 700
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def yahoo_generator(url, width):
     """ A quick check for the right url
 
@@ -422,6 +436,8 @@ def blip_check(url):
 
 blip_check.index = 800
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def blip_generator(url, width):
     """ A quick check for the right url, this one requires a direct
     flv link:
@@ -458,6 +474,8 @@ def ifilm_check(url):
 
 ifilm_check.index = 900
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def ifilm_generator(url, width):
     """ A quick check for the right url:
 
@@ -488,6 +506,8 @@ def myspace_check(url):
 
 myspace_check.index = 1000
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def myspace_generator(url, width):
     """ A quick check for the right url:
 
@@ -516,6 +536,8 @@ def metacafe_check(url):
 
 metacafe_check.index = 1100
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def metacafe_generator(url, width):
     """ A quick check for the right url:
 
@@ -555,6 +577,8 @@ def collegehumor_check(url):
 
 collegehumor_check.index = 1200
 
+@adapter(str, int)
+@implementer(IEmbedCode)
 def collegehumor_generator(url, width):
     """ A quick check for the right url
 
