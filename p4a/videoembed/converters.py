@@ -1,9 +1,10 @@
 import re
 from urlparse import urlsplit, urlunsplit
 from urllib import quote, quote_plus
-from _cache import BufferCache
+from p4a.videoembed._cache import BufferCache
+from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
-from p4a.videoembed.registry import register_converter
+from p4a.videoembed.interfaces import IURLChecker
 
 def _break_url(url):
     """A helper method for extracting url parts and parsing the query string
@@ -36,11 +37,14 @@ def _break_url(url):
 break_url = BufferCache(_break_url)
 
 # YouTube!
+@provider(IURLChecker)
 def youtube_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('youtube.com') and query.has_key('v'):
         return True
     return False
+
+youtube_check.index = 100
 
 def youtube_generator(url, width):
     """ A quick check for the right url
@@ -64,14 +68,16 @@ def youtube_generator(url, width):
                                                   width, height))
     tag.append('</object>')
     return u''.join(tag)
-register_converter('youtube', youtube_check, 100)
 
 # one.revver.com
+@provider(IURLChecker)
 def onerevver_check(url):
     host, path, query, fragment = _break_url(url)
     if host == 'one.revver.com':
         return True
     return False
+
+onerevver_check.index = 200
 
 FINALDIGITS = re.compile(r'.*?(\d+)$')
 WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/\D+?)?(?:/(\d+))?$')
@@ -140,14 +146,16 @@ def onerevver_generator(url, width):
                                            height, width))
     tag.append('</script>')
     return u''.join(tag)
-register_converter('onerevver', onerevver_check, 200)
 
 # The original revver QT embed
+@provider(IURLChecker)
 def revver_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('revver.com'):
         return True
     return False
+
+revver_check.index = 300
 
 def revver_generator(url, width):
     """ A quick check for the right url
@@ -208,14 +216,16 @@ def revver_generator(url, width):
                                             width, height))
     tag.append('</object>')
     return u''.join(tag)
-register_converter('revver', revver_check, 300)
 
 # Google video
+@provider(IURLChecker)
 def google_check(url):
     host, path, query, fragment = _break_url(url)
     if host == 'video.google.com' and query.has_key('docid'):
         return True
     return False
+
+google_check.index = 400
 
 def google_generator(url, width):
     """ A quick check for the right url
@@ -236,14 +246,16 @@ def google_generator(url, width):
         ))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('googlevideo', google_check, 400)
 
 # Vimeo
+@provider(IURLChecker)
 def vimeo_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('vimeo.com'):
         return True
     return False
+
+vimeo_check.index = 500
 
 def vimeo_generator(url, width):
     """ A quick check for the right url
@@ -271,14 +283,16 @@ def vimeo_generator(url, width):
                                                         height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('vimeo', vimeo_check, 500)
 
 # Vmix
+@provider(IURLChecker)
 def vmix_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('.vmix.com') and query.has_key('id'):
         return True
     return False
+
+vmix_check.index = 600
 
 def vmix_generator(url, width):
     """ A quick check for the right url
@@ -302,14 +316,16 @@ def vmix_generator(url, width):
                                                               height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('vmix', vmix_check, 600)
 
 # Yahoo! video
+@provider(IURLChecker)
 def yahoo_check(url):
     host, path, query, fragment = _break_url(url)
     if host == 'video.yahoo.com' and query.has_key('vid'):
         return True
     return False
+
+yahoo_check.index = 700
 
 def yahoo_generator(url, width):
     """ A quick check for the right url
@@ -352,14 +368,16 @@ def yahoo_generator(url, width):
                                           height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('yahoovideo', yahoo_check, 700)
 
 # Blip.tv (only accepts direct urls to flv videos!)
+@provider(IURLChecker)
 def blip_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('blip.tv') and path.endswith('.flv'):
         return True
     return False
+
+blip_check.index = 800
 
 def blip_generator(url, width):
     """ A quick check for the right url, this one requires a direct
@@ -386,14 +404,16 @@ def blip_generator(url, width):
                                                                       height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('blip.tv', blip_check, 800)
 
 # ifilm
+@provider(IURLChecker)
 def ifilm_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('ifilm.com'):
         return True
     return False
+
+ifilm_check.index = 900
 
 def ifilm_generator(url, width):
     """ A quick check for the right url:
@@ -414,14 +434,16 @@ def ifilm_generator(url, width):
                'flashvars="flvbaseclip=%s&">'%(width, height, video_id))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('ifilm', ifilm_check, 900)
 
 # myspace
+@provider(IURLChecker)
 def myspace_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('vids.myspace.com') and query.has_key('videoid'):
         return True
     return False
+
+myspace_check.index = 1000
 
 def myspace_generator(url, width):
     """ A quick check for the right url:
@@ -440,14 +462,16 @@ def myspace_generator(url, width):
                'width="%s" height="%s">'%(video_id, width, height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('myspace', myspace_check, 1000)
 
 # metacafe
+@provider(IURLChecker)
 def metacafe_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('metacafe.com'):
         return True
     return False
+
+metacafe_check.index = 1100
 
 def metacafe_generator(url, width):
     """ A quick check for the right url:
@@ -477,14 +501,16 @@ def metacafe_generator(url, width):
                'type="application/x-shockwave-flash">'%(video_id, video_name, width, height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('metacafe', metacafe_check, 1100)
 
 # College Humor (nearly identical to vimeo)
+@provider(IURLChecker)
 def collegehumor_check(url):
     host, path, query, fragment = _break_url(url)
     if host.endswith('collegehumor.com'):
         return True
     return False
+
+collegehumor_check.index = 1200
 
 def collegehumor_generator(url, width):
     """ A quick check for the right url
@@ -512,4 +538,3 @@ def collegehumor_generator(url, width):
                                                         height))
     tag.append('</embed>')
     return u''.join(tag)
-register_converter('collegehumor', collegehumor_check, 1200)

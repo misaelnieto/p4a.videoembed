@@ -2,7 +2,8 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser">
 
-  <utility component=".registry.embed_registry" />
+  <utility factory=".registry.EmbedCodeConverterUtility" />
+  <utility component=".registry.findURLType" />
 
   <adapter
       for="str"
@@ -22,6 +23,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.youtube_generator"
       />
+  <utility component=".converters.youtube_check"
+           name="youtube"/>
 
   <adapter
       for="str int"
@@ -29,6 +32,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.onerevver_generator"
       />
+  <utility component=".converters.onerevver_check"
+           name="onerevver"/>
 
   <adapter
       for="str int"
@@ -36,6 +41,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.revver_generator"
       />
+  <utility component=".converters.revver_check"
+           name="revver"/>
 
   <adapter
       for="str int"
@@ -43,6 +50,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.google_generator"
       />
+  <utility component=".converters.google_check"
+           name="googlevideo"/>
 
   <adapter
       for="str int"
@@ -50,6 +59,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.vimeo_generator"
       />
+  <utility component=".converters.vimeo_check"
+           name="vimeo"/>
 
   <adapter
       for="str int"
@@ -57,6 +68,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.vmix_generator"
       />
+  <utility component=".converters.vmix_check"
+           name="vmix"/>
 
   <adapter
       for="str int"
@@ -64,6 +77,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.yahoo_generator"
       />
+  <utility component=".converters.yahoo_check"
+           name="yahoovideo"/>
 
   <adapter
       for="str int"
@@ -71,6 +86,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.blip_generator"
       />
+  <utility component=".converters.blip_check"
+           name="blip.tv"/>
 
   <adapter
       for="str int"
@@ -78,6 +95,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.ifilm_generator"
       />
+  <utility component=".converters.ifilm_check"
+           name="ifilm"/>
 
   <adapter
       for="str int"
@@ -85,6 +104,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.myspace_generator"
       />
+  <utility component=".converters.myspace_check"
+           name="myspace"/>
 
   <adapter
       for="str int"
@@ -92,6 +113,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.metacafe_generator"
       />
+  <utility component=".converters.metacafe_check"
+           name="metacafe"/>
 
   <adapter
       for="str int"
@@ -99,6 +122,8 @@
       provides=".interfaces.IEmbedCode"
       factory=".converters.collegehumor_generator"
       />
+  <utility component=".converters.collegehumor_check"
+           name="collegehumor"/>
 
   <browser:page
       for="*"

@@ -2,73 +2,68 @@ from BTrees.IOBTree import IOBTree
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.component import getUtility
+from zope.component import getUtilitiesFor
 from zope.component.exceptions import ComponentLookupError
 from zope.interface import implements
+from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IEmbedCodeConverterRegistry
-from p4a.videoembed.interfaces import ILinkProvider
+from p4a.videoembed.interfaces import IURLType
+from p4a.videoembed.interfaces import IURLChecker
 
+@provider(IURLType)
+def findURLType(url):
+    """A means of finding the name of the adapter to use to convert a given
+    URL"""
+    checkers = [u for u in getUtilitiesFor(IURLChecker)]
+    # sort on explicit index
+    checkers.sort(key=lambda u: getattr(u[1], 'index', 100000))
+    for name, check in checkers:
+        if check(url):
+            return name
+    return None
 
-class EmbedConverterEntry(object):
-    """An entry in the EmbedCodeConverterRegistry"""
-    def __init__(self, name, match_func):
-        self.name = name
-        if not callable(match_func):
-            raise ValueError, "The matching function must be a callable"
-        self.match_func = match_func
-
-    def check(self, url):
-        return self.match_func(url)
-
-    def get_code(self, url, width):
-        return queryMultiAdapter((url, width), IEmbedCode, name=self.name,
-                                     default=None)
-
-
-class EmbedCodeConverterRegistry(object):
+class EmbedCodeConverterUtility(object):
     """A simple registry for converters from urls to embed codes
 
     Let's make a very simple checker and register it with the CA:
 
+      >>> from zope.interface import directlyProvides
       >>> test_check = lambda url: url.startswith('http://blah.com')
+      >>> directlyProvides(test_check, IURLChecker)
       >>> test_convert = lambda url, width: '<embed url="%s" />'%url
-      >>> from zope.component import provideAdapter
+      >>> from zope.component import provideAdapter, provideUtility
       >>> provideAdapter(test_convert, (str, int), IEmbedCode, name='test')
+      >>> provideUtility(test_check, provides=IURLChecker, name='test')
 
-    Now we create our registry and add it there:
+    We need an instance of this utility and also to register the
+    URLType utility:
 
-      >>> reg = EmbedCodeConverterRegistry()
-      >>> reg.register_converter('test', test_check, 100)
+      >>> provideUtility(findURLType, provides=IURLType)
+      >>> util = EmbedCodeConverterUtility()
 
     And we try to convert a url:
 
-      >>> print reg.get_code('http://blah.com/foo', 400)
+      >>> print util.get_code('http://blah.com/foo', 400)
       <embed url="http://blah.com/foo" />
-      >>> print reg.get_code('http://bar.com/blah', 300)
+      >>> print util.get_code('http://bar.com/blah', 300)
       None
 
     We can register an adapter earlier in the chain and it will win:
 
       >>> test_check2 = lambda url: url.endswith('.mov')
+      >>> test_check2.index = 100
+      >>> directlyProvides(test_check2, IURLChecker)
       >>> test_convert2 = lambda url, width: '<embed url="%s" width="%s" />'%(
       ...                                                         url, width)
       >>> from zope.component import provideAdapter
       >>> provideAdapter(test_convert2, (str, int), IEmbedCode, name='test2')
-      >>> reg.register_converter('test2', test_check2, 50)
+      >>> provideUtility(test_check2, provides=IURLChecker, name='test2')
 
     Now a url that matches both will be passed to the earlier one:
 
-      >>> print reg.get_code('http://blah.com/foo.mov', 500)
+      >>> print util.get_code('http://blah.com/foo.mov', 500)
       <embed url="http://blah.com/foo.mov" width="500" />
-
-    A converter registered with the same index gets bumped down to the
-    next unoccupied slot (in this case we use the same named adapter
-    registered with a different check method):
-
-      >>> test_check3 = lambda url: url.endswith('.avi')
-      >>> reg.register_converter('test2', test_check3, 100)
-      >>> print reg.get_code('http://blah.com/foo.avi', 500)
-      <embed url="http://blah.com/foo.avi" />
 
     """
     implements(IEmbedCodeConverterRegistry)
@@ -76,27 +71,11 @@ class EmbedCodeConverterRegistry(object):
     def __init__(self):
         self._registry = IOBTree()
 
-    def register_converter(self, name, match_func, index=0):
-        # Registering named adapters instead of direct factories is almost
-        # certainly YAGNI, but it's not such a terrible abstraction, IMHO
-        reg = self._registry
-        check_index = reg.has_key
-        # increment the index until we find a suitable one
-        while check_index(index):
-            index = index + 1
-        reg[index] = EmbedConverterEntry(name, match_func)
-
     def get_code(self, url, width):
-        for converter in self._registry.values():
-            # Find a converter that likes our url
-            if converter.check(url):
-                break
-        else:
-            return None
-        return converter.get_code(url, width)
-
-embed_registry = EmbedCodeConverterRegistry()
-register_converter = embed_registry.register_converter
+        url_type = getUtility(IURLType)(url)
+        if url_type:
+            return queryMultiAdapter((url, width), IEmbedCode, name=url_type,
+                                     default=None)
 
 
 def embedCodeAdapter(url, width=425):
