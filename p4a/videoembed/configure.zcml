@@ -17,6 +17,8 @@
       factory=".registry.embedCodeAdapter"
       />
 
+  <adapter factory=".registry.mediaURLConverter" />
+
   <adapter
       for="str int"
       name="youtube"
@@ -24,6 +26,8 @@
       factory=".converters.youtube_generator"
       />
   <utility component=".converters.youtube_check"
+           name="youtube"/>
+  <adapter factory=".converters.youtube_mediaurl"
            name="youtube"/>
 
   <adapter
@@ -33,6 +37,8 @@
       factory=".converters.onerevver_generator"
       />
   <utility component=".converters.onerevver_check"
+           name="onerevver"/>
+  <adapter factory=".converters.onerevver_mediaurl"
            name="onerevver"/>
 
   <adapter

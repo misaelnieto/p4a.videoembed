@@ -1,10 +1,13 @@
 import re
 from urlparse import urlsplit, urlunsplit
 from urllib import quote, quote_plus
+from zope.interface import implements, implementer
+from zope.component import adapts, adapter
 from p4a.videoembed._cache import BufferCache
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
+from p4a.videoembed.interfaces import IMediaURL
 
 def _break_url(url):
     """A helper method for extracting url parts and parsing the query string
@@ -69,6 +72,23 @@ def youtube_generator(url, width):
     tag.append('</object>')
     return u''.join(tag)
 
+class youtube_mediaurl(object):
+    """Returns the quicktime media url for a piece of youtube content:
+
+           >>> url = youtube_mediaurl('http://www.youtube.com/watch?v=1111')
+           >>> url.media_url
+           'http://youtube.com/v/1111.swf'
+           >>> url.mimetype
+           'application/x-shockwave-flash'
+    """
+    implements(IMediaURL)
+    adapts(str)
+    def __init__(self, url):
+        host, path, query, fragment = _break_url(url)
+        video_id = query['v']
+        self.mimetype = 'application/x-shockwave-flash'
+        self.media_url = 'http://youtube.com/v/%s.swf'%video_id
+
 # one.revver.com
 @provider(IURLChecker)
 def onerevver_check(url):
@@ -81,6 +101,35 @@ onerevver_check.index = 200
 
 FINALDIGITS = re.compile(r'.*?(\d+)$')
 WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/\D+?)?(?:/(\d+))?$')
+
+def _onerevver_getids(url):
+    host, path, query, fragment = _break_url(url)
+    video_id = None
+    affiliate_id = 0
+
+    # First look for /watch/######
+    match = WATCHDIGITS.search(path)
+    if not match:
+        # Otherwise take the last digits in the url
+        # this seems to be going away
+        path_elems = path.split('/')
+        last_elem = path_elems.pop(-1)
+        if not last_elem:
+            # in case the url ends with a '/'
+            last_elem = path_elems.pop(-1)
+        match = FINALDIGITS.match(last_elem)
+    if not match and fragment:
+        # Sometimes the video_id is the url fragment (strange)
+        # fortunately this seems to be going away
+        match = FINALDIGITS.match(fragment)
+    if match:
+        # Take the first matching value
+        groups =  match.groups()
+        video_id = groups[0]
+        if len(groups) > 1:
+            affiliate_id = groups[-1] or 0
+    return video_id, affiliate_id
+
 def onerevver_generator(url, width):
     """ A quick check for the right url
 
@@ -110,32 +159,8 @@ def onerevver_generator(url, width):
     """
 
     tag = []
-    host, path, query, fragment = _break_url(url)
-    video_id = None
     height = int(round(0.817*width))
-
-    # First look for /watch/######
-    match = WATCHDIGITS.search(path)
-    if not match:
-        # Otherwise take the last digits in the url
-        # this seems to be going away
-        path_elems = path.split('/')
-        last_elem = path_elems.pop(-1)
-        if not last_elem:
-            # in case the url ends with a '/'
-            last_elem = path_elems.pop(-1)
-        match = FINALDIGITS.match(last_elem)
-    if not match and fragment:
-        # Sometimes the video_id is the url fragment (strange)
-        # fortunately this seems to be going away
-        match = FINALDIGITS.match(fragment)
-    if match:
-        # Take the first matching value
-        groups =  match.groups()
-        video_id = groups[0]
-        affiliate_id = 0
-        if len(groups) > 1:
-            affiliate_id = groups[-1] or 0
+    video_id, affiliate_id = _onerevver_getids(url)
 
     if video_id is None:
         return
@@ -146,6 +171,24 @@ def onerevver_generator(url, width):
                                            height, width))
     tag.append('</script>')
     return u''.join(tag)
+
+class onerevver_mediaurl(object):
+    """Returns the quicktime media url for a piece of revver content:
+
+           >>> url = onerevver_mediaurl('http://one.revver.com/other/139266/12234')
+           >>> url.media_url
+           'http://media.revver.com/qt;sharer=12234/139266.mov'
+           >>> url.mimetype
+           'video/quicktime'
+    """
+    implements(IMediaURL)
+    adapts(str)
+    def __init__(self, url):
+        host, path, query, fragment = _break_url(url)
+        video_id, affiliate_id = _onerevver_getids(url)
+        self.mimetype = 'video/quicktime'
+        self.media_url = 'http://media.revver.com/qt;sharer=%s/%s.mov'%(
+                                                         affiliate_id, video_id)
 
 # The original revver QT embed
 @provider(IURLChecker)

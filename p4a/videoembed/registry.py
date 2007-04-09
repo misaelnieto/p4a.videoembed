@@ -1,15 +1,18 @@
 from BTrees.IOBTree import IOBTree
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
+from zope.component import queryAdapter
 from zope.component import getUtility
 from zope.component import getUtilitiesFor
+from zope.component import adapter
 from zope.component.exceptions import ComponentLookupError
-from zope.interface import implements
+from zope.interface import implements, implementer
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IEmbedCodeConverterRegistry
-from p4a.videoembed.interfaces import IURLType
 from p4a.videoembed.interfaces import IURLChecker
+from p4a.videoembed.interfaces import IURLType
+from p4a.videoembed.interfaces import IMediaURL
 
 @provider(IURLType)
 def findURLType(url):
@@ -68,9 +71,6 @@ class EmbedCodeConverterUtility(object):
     """
     implements(IEmbedCodeConverterRegistry)
 
-    def __init__(self):
-        self._registry = IOBTree()
-
     def get_code(self, url, width):
         url_type = getUtility(IURLType)(url)
         if url_type:
@@ -78,6 +78,7 @@ class EmbedCodeConverterUtility(object):
                                      default=None)
 
 
+@implementer(IEmbedCode)
 def embedCodeAdapter(url, width=425):
     """Queries the registry and returns an embed code"""
     registry = getUtility(IEmbedCodeConverterRegistry)
@@ -100,3 +101,40 @@ class EmbedCodeView(object):
                 return
         return queryMultiAdapter((url, width), IEmbedCode, default=None)
 
+
+@adapter(str)
+@implementer(IMediaURL)
+def mediaURLConverter(url):
+    """A simple adapter from a url to a media-file url and mimetype
+
+    Let's make a very simple checker and register it with the CA:
+
+      >>> from zope.interface import directlyProvides
+      >>> test_check = lambda url: url.startswith('http://blah.com')
+      >>> directlyProvides(test_check, IURLChecker)
+      >>> class media_url(object):
+      ...     media_url = 'blah.mov'
+      ...     mimetype = 'video/quicktime'
+      >>> test_convert = lambda url: media_url()
+      >>> from zope.component import provideAdapter, provideUtility
+      >>> provideAdapter(test_convert, (str,), IMediaURL, name='test')
+      >>> provideUtility(test_check, provides=IURLChecker, name='test')
+
+    We need to register the
+    URLType utility:
+
+      >>> provideUtility(findURLType, provides=IURLType)
+
+    And we try to convert a url:
+
+      >>> media_url = mediaURLConverter('http://blah.com/foo')
+      >>> media_url.media_url
+      'blah.mov'
+      >>> media_url.mimetype
+      'video/quicktime'
+
+    """
+
+    url_type = getUtility(IURLType)(url)
+    if url_type:
+        return queryAdapter(url, IMediaURL, name=url_type, default=None)

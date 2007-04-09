@@ -41,6 +41,12 @@ class ILinkProvider(Interface):
         """Returns a url which may correspond to a video embed code"""
 
 
+class IMediaURL(Interface):
+    """A simple interface describing a url to a media file"""
+
+    media_url = Attribute("The url to the media file")
+    mimetype = Attribute("The mimetype of the media file")
+
 # A simple decorator to indicate that a function provides a particular interface
 # useful for marking utility functions
 class provider(object):
