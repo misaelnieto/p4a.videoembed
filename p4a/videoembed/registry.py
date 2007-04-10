@@ -10,6 +10,7 @@ from zope.interface import implements, implementer
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IEmbedCodeConverterRegistry
+from p4a.videoembed.interfaces import ILinkProvider
 from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IURLType
 from p4a.videoembed.interfaces import IMediaURL

@@ -43,14 +43,17 @@ embed code.  You register the latter function as a named adapter, like:
       factory=".converters.youtube_generator"
       />
 
-And then register the name and url checking method with a global registry:
+And register the url checking function as a utility with the same
+name:
 
-    from p4a.videoembed.registry import register_converter
-    register_converter('youtube', youtube_check_func)
+  <utility
+      provides=".interfaces.IURLChecker"
+      component=".converters.youtube_check"
+      name="youtube" />
 
-You may optionally provide an integer 'index' on registration to determine the
-relative order in which the check is made (more specific checks should go
-earlier).
+You may optionally provide an integer 'index' as an attribute of the
+checker to determine the relative order in which the check is made
+(more specific checks should go earlier).
 
 Getting the Embed Code
 ----------------------
