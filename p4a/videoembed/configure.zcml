@@ -108,6 +108,13 @@
       component=".converters.collegehumor_check"
       name="collegehumor" />
 
+  <adapter
+      name="quicktime"
+      factory=".converters.quicktime_generator" />
+  <utility
+      component=".converters.quicktime_check"
+      name="quicktime" />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"

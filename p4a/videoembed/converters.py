@@ -605,3 +605,50 @@ def collegehumor_generator(url, width):
                                                         height))
     tag.append('</embed>')
     return u''.join(tag)
+
+
+# The original revver QT embed
+@provider(IURLChecker)
+def quicktime_check(url):
+    host, path, query, fragment = _break_url(url)
+    if path.endswith('.mov') or path.endswith('.qt') or path.endswith('.m4v'):
+        return True
+    return False
+
+#this goes last
+quicktime_check.index = 100000
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def quicktime_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print quicktime_generator('http://mysite.com/url/to/qt.mov',
+    ...                         width=400)
+    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/qt.mov" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="tofit" /><embed src="http://mysite.com/url/to/qt.mov" pluginspage="http://www.apple.com/quicktime/download/" scale="tofit" kioskmode="False" qtsrc="http://mysite.com/url/to/qt.mov" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
+
+    >>> print quicktime_generator('http://mysite.com/url/to/movie.qt',
+    ...                         width=400)
+    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/movie.qt" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="tofit" /><embed src="http://mysite.com/url/to/movie.qt" pluginspage="http://www.apple.com/quicktime/download/" scale="tofit" kioskmode="False" qtsrc="http://mysite.com/url/to/movie.qt" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
+
+    """
+    tag = []
+    height = int(round(0.85*width))
+    tag.append('<object '
+          'codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="%s" '
+          'classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="%s">'%(
+                      width, height))
+    tag.append('<param name="src" value="%s" />'%url)
+    tag.append('<param name="controller" value="True" />')
+    tag.append('<param name="cache" value="False" />')
+    tag.append('<param name="autoplay" value="False" />')
+    tag.append('<param name="kioskmode" value="False" />')
+    tag.append('<param name="scale" value="tofit" />')
+    tag.append('<embed src="%s" '
+               'pluginspage="http://www.apple.com/quicktime/download/" '
+               'scale="tofit" kioskmode="False" '
+               'qtsrc="%s" cache="False" width="%s" height="%s" '
+               'controller="True" type="video/quicktime" '
+               'autoplay="False"></embed>'%(url, url, width, height))
+    tag.append('</object>')
+    return u''.join(tag)
