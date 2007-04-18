@@ -648,7 +648,7 @@ def flv_generator(url, width):
     tag.append('<embed src="%s" width="%s" height="%s" bgcolor="#FFFFFF" '
         'type="application/x-shockwave-flash" '
         'pluginspage="http://www.macromedia.com/go/getflashplayer" '
-        'flashvars="file=%s&autostart=true">' %(FLV_PLAYER_URL, width, height,
+        'flashvars="file=%s&autostart=false">'%(FLV_PLAYER_URL, width, height,
                                                 video_url))
     tag.append('</embed>')
     return u''.join(tag)
