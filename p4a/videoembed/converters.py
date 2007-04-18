@@ -426,44 +426,6 @@ def yahoo_generator(url, width):
     tag.append('</embed>')
     return u''.join(tag)
 
-# Blip.tv (only accepts direct urls to flv videos!)
-@provider(IURLChecker)
-def blip_check(url):
-    host, path, query, fragment = _break_url(url)
-    if host.endswith('blip.tv') and path.endswith('.flv'):
-        return True
-    return False
-
-blip_check.index = 800
-
-@adapter(str, int)
-@implementer(IEmbedCode)
-def blip_generator(url, width):
-    """ A quick check for the right url, this one requires a direct
-    flv link:
-
-    >>> print blip_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
-    <embed wmode="transparent" src="http://blip.tv/scripts/flash/blipplayer.swf?autoStart=false&file=http://blip.tv/file/get/SomeVideo.flv&source=3" quality="high" width="400" height="320" name="movie" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>
-
-    """
-    tag = []
-    host, path, query, fragment = _break_url(url)
-    height = int(round(0.8*width))
-
-    video_url = url
-    path_elems = path.split('/')
-    video_id = path_elems.pop(-1)
-    tag.append('<embed wmode="transparent" '
-        'src="http://blip.tv/scripts/flash/blipplayer.swf'
-        '?autoStart=false&file=%s&source=3" '
-        'quality="high" width="%s" height="%s" name="movie" '
-        'type="application/x-shockwave-flash" '
-        'pluginspage="http://www.macromedia.com/go/getflashplayer">'%(video_url,
-                                                                      width,
-                                                                      height))
-    tag.append('</embed>')
-    return u''.join(tag)
-
 # ifilm
 @provider(IURLChecker)
 def ifilm_check(url):
@@ -651,4 +613,42 @@ def quicktime_generator(url, width):
                'controller="True" type="video/quicktime" '
                'autoplay="False"></embed>'%(url, url, width, height))
     tag.append('</object>')
+    return u''.join(tag)
+
+
+# Any flv (only accepts direct urls to flv videos!) uses blip's player
+@provider(IURLChecker)
+def flv_check(url):
+    host, path, query, fragment = _break_url(url)
+    if path.endswith('.flv'):
+        return True
+    return False
+
+flv_check.index = 10100
+
+# FLV player url (requires the flv player from http://www.jeroenwijering.com/)
+# indicate the url to your copy of that player here
+
+FLV_PLAYER_URL = "http://location/path/to/flvplayer.swf"
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def flv_generator(url, width):
+    """ A quick check for the right url, this one requires a direct
+    flv link:
+
+    >>> print flv_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
+    <embed src="http://location/path/to/flvplayer.swf" width="400" height="320" bgcolor="#FFFFFF" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="file=http://blip.tv/file/get/SomeVideo.flv&autostart=true"></embed>
+
+    """
+    tag = []
+    height = int(round(0.8*width))
+
+    video_url = url
+    tag.append('<embed src="%s" width="%s" height="%s" bgcolor="#FFFFFF" '
+        'type="application/x-shockwave-flash" '
+        'pluginspage="http://www.macromedia.com/go/getflashplayer" '
+        'flashvars="file=%s&autostart=true">' %(FLV_PLAYER_URL, width, height,
+                                                video_url))
+    tag.append('</embed>')
     return u''.join(tag)

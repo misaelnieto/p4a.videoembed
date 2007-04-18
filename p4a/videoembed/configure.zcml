@@ -74,11 +74,11 @@
       name="yahoovideo" />
 
   <adapter
-      name="blip.tv"
-      factory=".converters.blip_generator" />
+      name="flashvideo"
+      factory=".converters.flv_generator" />
   <utility
-      component=".converters.blip_check"
-      name="blip.tv" />
+      component=".converters.flv_check"
+      name="flashvideo" />
 
   <adapter
       name="ifilm"
