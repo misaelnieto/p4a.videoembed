@@ -109,6 +109,13 @@
       name="collegehumor" />
 
   <adapter
+      name="veoh"
+      factory=".converters.veoh_generator" />
+  <utility
+      component=".converters.veoh_check"
+      name="veoh" />
+
+  <adapter
       name="quicktime"
       factory=".converters.quicktime_generator" />
   <utility

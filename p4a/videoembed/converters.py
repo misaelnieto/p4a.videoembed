@@ -555,7 +555,7 @@ def collegehumor_generator(url, width):
     try:
         video_id = int(path.split('%3A')[-1])
     except ValueError:
-        pass
+        return
     if not video_id:
         return
     embed_url = urlunsplit(('http', host, 'moogaloop/moogaloop.swf',
@@ -565,6 +565,51 @@ def collegehumor_generator(url, width):
                'type="application/x-shockwave-flash">'%(embed_url,
                                                         width,
                                                         height))
+    tag.append('</embed>')
+    return u''.join(tag)
+
+# Veoh
+@provider(IURLChecker)
+def veoh_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('veoh.com'):
+        return True
+    return False
+
+veoh_check.index = 1300
+
+
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def veoh_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print veoh_generator('http://www.veoh.com/videos/v360719D94bNyJd', width=400)
+    <embed src="http://www.veoh.com/videodetails.swf?permalinkId=v360719D94bNyJd&id=anonymous&player=videodetailsembedded&videoAutoPlay=0" width="400" height="324" bgcolor="#000000" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>
+
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.81*width))
+    path_list = path.split('/')
+
+    video_id = None
+    try:
+        # Use the path element imediately after '/videos/'
+        video_id = path_list[path_list.index('videos')+1]
+    except (ValueError, IndexError):
+        return
+    embed_url = urlunsplit(('http', host, 'videodetails.swf',
+                            'permalinkId=%s&id=anonymous&'
+                            'player=videodetailsembedded'
+                            '&videoAutoPlay=0'%video_id, ''))
+    tag.append('<embed src="%s" width="%s" height="%s" bgcolor="#000000" '
+               'type="application/x-shockwave-flash" '
+               'pluginspage="http://www.macromedia.com/go/getflashplayer">'%
+                        (embed_url,
+                         width,
+                         height))
     tag.append('</embed>')
     return u''.join(tag)
 
