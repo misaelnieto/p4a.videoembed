@@ -475,12 +475,18 @@ def myspace_generator(url, width):
 
     >>> print myspace_generator('http://vids.myspace.com/index.cfm?fuseaction=vids.individual&videoid=1577693374', width=400)
     <embed src="http://lads.myspace.com/videos/vplayer.swf" flashvars="m=1577693374&type=video" type="application/x-shockwave-flash" width="400" height="322"></embed>
+    >>> print myspace_generator('http://vids.myspace.com/index.cfm?fuseaction=vids.individual&VideoID=1577693374', width=400)
+    <embed src="http://lads.myspace.com/videos/vplayer.swf" flashvars="m=1577693374&type=video" type="application/x-shockwave-flash" width="400" height="322"></embed>
     """
     tag = []
     host, path, query, fragment = _break_url(url)
     height = int(round(0.805*width))
 
-    video_id = query['videoid']
+    video_id = query.get('videoid', None)
+    if video_id is None:
+        video_id = query.get('VideoID', None)
+    if video_id is None:
+        return None
     tag.append('<embed src="http://lads.myspace.com/videos/vplayer.swf" '
                'flashvars="m=%s&type=video" '
                'type="application/x-shockwave-flash" '
