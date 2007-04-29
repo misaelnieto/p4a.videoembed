@@ -2,7 +2,12 @@ Changelog for videoembed
 
     (name of developer listed in brackets)
 
-videoembed - 0.1 Unreleased
+videoembed - 1.0alpha1 (2007-04-29)
+
+    - Initial public release.
+      [Rocky Burt]
+
+videoembed - 0.1 (unreleased)
 
     - Initial package structure.
       [zopeskel]
