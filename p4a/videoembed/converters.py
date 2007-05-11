@@ -703,3 +703,46 @@ def flv_generator(url, width):
                                                 video_url))
     tag.append('</embed>')
     return u''.join(tag)
+
+# VH1 VSpot
+@provider(IURLChecker)
+def vspot_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('vh1.com') and 'vspot' in path and query.has_key('id') \
+           and query.has_key('vid'):
+        return True
+    return False
+
+vspot_check.index = 1400
+
+
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def vspot_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print vspot_generator('http://www.vh1.com/vspot/?id=1557493&vid=147375', width=400)
+    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="400" height="392"><param name="movie" value="http://synd.vh1.com/player.jhtml"/><param name="FlashVars" value="id=1557493&vid=147375"/><param name="wmode" value="transparent"/><param name="scale" value="default"/><embed src="http://synd.vh1.com/player.jhtml" FlashVars="id=1557493&vid=147375" type="application/x-shockwave-flash" width="400" height="392" wmode="transparent" scale="default"></embed></object>
+
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.98*width))
+
+    video_id = query['vid']
+    other_id = query['id']
+    tag.append('<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" '
+               'width="%s" height="%s">'%(width, height))
+    tag.append('<param name="movie" value="http://synd.vh1.com/player.jhtml"/>')
+    tag.append('<param name="FlashVars" value="id=%s&vid=%s"/>'%(other_id,
+                                                                  video_id))
+    tag.append('<param name="wmode" value="transparent"/>')
+    tag.append('<param name="scale" value="default"/>')
+    tag.append('<embed src="http://synd.vh1.com/player.jhtml" FlashVars="'
+               'id=%s&vid=%s" type="application/x-shockwave-flash" width="%s" '
+               'height="%s" wmode="transparent" scale="default">'%(other_id, video_id, width,
+                                                   height))
+    tag.append('</embed>')
+    tag.append('</object>')
+    return u''.join(tag)

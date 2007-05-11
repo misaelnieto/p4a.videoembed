@@ -122,6 +122,13 @@
       component=".converters.quicktime_check"
       name="quicktime" />
 
+  <adapter
+      name="vspot"
+      factory=".converters.vspot_generator" />
+  <utility
+      component=".converters.vspot_check"
+      name="vspot" />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
