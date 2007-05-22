@@ -746,3 +746,43 @@ def vspot_generator(url, width):
     tag.append('</embed>')
     tag.append('</object>')
     return u''.join(tag)
+
+
+
+# LiveLeak.com
+@provider(IURLChecker)
+def liveleak_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('liveleak.com') and query.has_key('i'):
+        return True
+    return False
+
+liveleak_check.index = 1500
+
+
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def liveleak_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print liveleak_generator('http://www.liveleak.com/view?i=311_1179355691', width=400)
+    <object type="application/x-shockwave-flash" width="400" height="328" wmode="transparent" data="http://www.liveleak.com/player.swf?autostart=false&token=311_1179355691"><param name="movie" value="http://www.liveleak.com/player.swf?autostart=false&token=311_1179355691" /><param name="wmode" value="transparent" /><param name="quality" value="high" /></object>
+
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.82*width))
+
+    video_id = query['i']
+    tag.append('<object type="application/x-shockwave-flash" '
+               'width="%s" height="%s" wmode="transparent" '
+               'data="http://www.liveleak.com/player.swf?autostart=false&token=%s">'
+                  %(width, height, video_id))
+    tag.append('<param name="movie" '
+               'value="http://www.liveleak.com/player.swf?autostart=false&token=%s" />'
+                  %video_id)
+    tag.append('<param name="wmode" value="transparent" />')
+    tag.append('<param name="quality" value="high" />')
+    tag.append('</object>')
+    return u''.join(tag)

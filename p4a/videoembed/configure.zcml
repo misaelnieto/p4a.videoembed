@@ -129,6 +129,13 @@
       component=".converters.vspot_check"
       name="vspot" />
 
+  <adapter
+      name="liveleak"
+      factory=".converters.liveleak_generator" />
+  <utility
+      component=".converters.liveleak_check"
+      name="liveleak" />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
