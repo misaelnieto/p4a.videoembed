@@ -786,3 +786,42 @@ def liveleak_generator(url, width):
     tag.append('<param name="quality" value="high" />')
     tag.append('</object>')
     return u''.join(tag)
+
+
+# SuperDeluxe.com
+@provider(IURLChecker)
+def superdeluxe_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('superdeluxe.com') and query.has_key('id'):
+        return True
+    return False
+
+superdeluxe_check.index = 1500
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def superdeluxe_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print superdeluxe_generator('http://www.superdeluxe.com/sd/contentDetail.do?id=D81F2344BF5AC7BB20E4789DE29A20C721C3765DC38D406E', width=400)
+    <object width="400" height="350"><param name="allowFullScreen" value="true" /><param name="movie" value="http://www.superdeluxe.com/static/swf/share_vidplayer.swf" /><param name="FlashVars" value="id=D81F2344BF5AC7BB20E4789DE29A20C721C3765DC38D406E" /><embed src="http://www.superdeluxe.com/static/swf/share_vidplayer.swf" FlashVars="id=D81F2344BF5AC7BB20E4789DE29A20C721C3765DC38D406E" type="application/x-shockwave-flash" width="400" height="350" allowFullScreen="true" ></embed></object>
+
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.875*width))
+
+    video_id = query['id']
+    tag.append('<object width="%s" height="%s">'%(width, height))
+    tag.append('<param name="allowFullScreen" value="true" />')
+    tag.append('<param name="movie" '
+               'value="http://www.superdeluxe.com/static/swf/share_vidplayer.swf" />')
+    tag.append('<param name="FlashVars" value="id=%s" />'%(video_id))
+    tag.append('<embed src="http://www.superdeluxe.com/static/swf/share_vidplayer.swf" '
+               'FlashVars="id=%s" type="application/x-shockwave-flash" '
+               'width="%s" height="%s" allowFullScreen="true" >'%(video_id,
+                                                                  width,
+                                                                  height))
+    tag.append('</embed>')
+    tag.append('</object>')
+    return u''.join(tag)

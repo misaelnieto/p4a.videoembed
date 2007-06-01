@@ -136,6 +136,13 @@
       component=".converters.liveleak_check"
       name="liveleak" />
 
+  <adapter
+      name="superdeluxe"
+      factory=".converters.superdeluxe_generator" />
+  <utility
+      component=".converters.superdeluxe_check"
+      name="superdeluxe" />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"
