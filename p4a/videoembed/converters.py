@@ -270,7 +270,7 @@ def revver_generator(url, width):
 @provider(IURLChecker)
 def google_check(url):
     host, path, query, fragment = _break_url(url)
-    if host == 'video.google.com' and query.has_key('docid'):
+    if host.startswith('video.google.') and query.has_key('docid'):
         return True
     return False
 
