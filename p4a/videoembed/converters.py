@@ -1,5 +1,7 @@
+from xml.dom import minidom
 import re
 from urlparse import urlsplit, urlunsplit
+import urllib2
 from urllib import quote, quote_plus
 from zope.interface import implements, implementer
 from zope.component import adapts, adapter
@@ -318,6 +320,66 @@ def google_check(url):
     return False
 
 google_check.index = 400
+
+def _get_google_rss(url):
+    """Retrieve the remote RSS XML for the given video url."""
+    host, path, query, fragment = _break_url(url)
+    video_id = query['docid']
+    fin = urllib2.urlopen('http://'+host+'/videofeed?docid='+video_id)
+    rss = fin.read()
+    fin.close()
+    return rss
+
+def _find_node(node, name):
+    """Find a node with a name (tag name) given the node tree."""
+
+    if getattr(node, 'tagName', None) == name:
+        return node
+    else:
+        for x in node.childNodes:
+            res = _find_node(x, name)
+            if res is not None:
+                return res
+    return None
+
+def _get_google_thumbnail_url(rss):
+    """Parse google video rss and pull out the thumbnail information.
+
+      >>> rss = '''<?xml version="1.0" ?>
+      ... <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/">
+      ... <channel>
+      ...     <title>
+      ...       Google Video - Extreme Diet Coke &amp; Mentos Experiments II - The Domino Effect
+      ...     </title>
+      ...     <link>
+      ...       http://video.google.com/videoplay?docid=-274981837129821058
+      ...     </link>
+      ...     <item>
+      ...       <media:group>
+      ...         <media:thumbnail height="240" url="http://video.google.com/somepath.jpg" width="320"/>
+      ...       </media:group>
+      ...     </item>
+      ...   </channel>
+      ... </rss>
+      ... '''
+      >>> _get_google_thumbnail_url(rss)
+      u'http://video.google.com/somepath.jpg'
+
+    """
+    doc = minidom.parseString(rss)
+    node = _find_node(doc, 'media:thumbnail')
+    if node is not None:
+        return node.getAttribute('url')
+    return None
+
+@adapter(str)
+@implementer(IVideoMetadataLookup)
+def google_metadata_lookup(url):
+    """Retrieve metadata information regarding a google video url."""
+
+    rss = _get_google_rss(url)
+    thumbnail_url = _get_google_thumbnail_url(rss)
+    return VideoMetadata(thumbnail_url)
 
 @adapter(str, int)
 @implementer(IEmbedCode)

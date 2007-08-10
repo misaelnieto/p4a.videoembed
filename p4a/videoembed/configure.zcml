@@ -49,6 +49,9 @@
       name="revver" />
 
   <adapter
+      factory=".converters.google_metadata_lookup"
+      name="googlevideo" />
+  <adapter
       name="googlevideo"
       factory=".converters.google_generator" />
   <utility
