@@ -143,6 +143,13 @@
       component=".converters.superdeluxe_check"
       name="superdeluxe" />
 
+  <adapter
+      name="videodetective"
+      factory=".converters.videodetective_generator" />
+  <utility
+      component=".converters.videodetective_check"
+      name="videodetective" />
+
   <browser:page
       for="*"
       class=".registry.EmbedCodeView"

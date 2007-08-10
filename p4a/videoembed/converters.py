@@ -825,3 +825,46 @@ def superdeluxe_generator(url, width):
     tag.append('</embed>')
     tag.append('</object>')
     return u''.join(tag)
+
+
+#video detective
+VIDEO_DET = re.compile('P(\d+).htm$')
+@provider(IURLChecker)
+def videodetective_check(url):
+    host, path, query, fragment = _break_url(url)
+    if host.endswith('videodetective.com') and (VIDEO_DET.search(path) or
+                                                'publishedid' in query):
+        return True
+    return False
+
+videodetective_check.index = 1600
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def videodetective_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print videodetective_generator('http://www.videodetective.com/movies/GET_SMART/trailer/P00479443.htm', width=400)
+    <embed src="http://www.videodetective.com/codes/flvcodeplayer.swf" width="400" height="325" allowfullscreen="true" flashvars="&file=479443&height=325&width=400&autostart=false&shuffle=false" />
+    >>> print videodetective_generator('http://www.videodetective.com/titledetails.aspx?publishedid=479443', width=400)
+    <embed src="http://www.videodetective.com/codes/flvcodeplayer.swf" width="400" height="325" allowfullscreen="true" flashvars="&file=479443&height=325&width=400&autostart=false&shuffle=false" />
+
+    """
+    tag = []
+    host, path, query, fragment = _break_url(url)
+    height = int(round(0.813*width))
+
+    video_id = query.get('publishedid', None)
+    if video_id is None:
+        match = VIDEO_DET.search(path)
+        if match:
+            video_id = int(match.groups()[0])
+        else:
+            return
+    player_url = 'http://www.videodetective.com/codes/flvcodeplayer.swf'
+    tag.append('<embed src="%s" width="%s" height="%s" allowfullscreen="true" '
+               'flashvars="&file=%s&height=%s&width=%s'
+               '&autostart=false&shuffle=false" />'%(player_url, width,
+                                                     height, video_id,
+                                                     height, width))
+    return u''.join(tag)
