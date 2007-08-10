@@ -8,6 +8,8 @@ from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IMediaURL
+from p4a.videoembed.interfaces import IVideoMetadataLookup
+from p4a.videoembed.interfaces import VideoMetadata
 
 def _break_url(url):
     """A helper method for extracting url parts and parsing the query string
@@ -48,6 +50,47 @@ def youtube_check(url):
     return False
 
 youtube_check.index = 100
+
+# This is the appropriate way of getting the thumbnail image.  Due to not
+# wanting to add the dev_id requirement, this code will not be used yet
+def _youtube_metadata_lookup(xml):
+    """Parse the given xml and get appropriate metadata.
+
+      >>> xml = '''
+      ... <video_details>
+      ...     <author>youtubeuser</author>
+      ...     <title>My Trip to California</title>
+      ...     <tags>california trip redwoods</tags>
+      ...     <description>This video shows some highlights of my trip to California last year.</description>
+      ...     <length_seconds>8</length_seconds>
+      ...     <thumbnail_url>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg</thumbnail_url>
+      ... </video_details>'''
+
+      >>> _youtube_metadata_lookup(xml)
+      <VideoMetadata thumbnail_url=>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
+
+    """
+
+    thumbstart = xml.find('<thumbnail_url>')
+    thumbend = xml.find('</thumbnail_url>')
+
+    thumbnail_url = xml[thumbstart+14:thumbend].strip()
+
+    return VideoMetadata(thumbnail_url)
+
+@adapter(str)
+@implementer(IVideoMetadataLookup)
+def youtube_metadata_lookup(url):
+    """Retrieve metadata information regarding a youtube video url.
+
+      >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo')
+      <VideoMetadata thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
+    """
+
+    host, path, query, fragment = _break_url(url)
+    video_id = query['v']
+    thumbnail_url = 'http://img.youtube.com/vi/%s/default.jpg' % video_id
+    return VideoMetadata(thumbnail_url)
 
 @adapter(str, int)
 @implementer(IEmbedCode)
