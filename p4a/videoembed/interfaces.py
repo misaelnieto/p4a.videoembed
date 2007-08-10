@@ -1,6 +1,6 @@
 from zope.interface import Interface, Attribute
 from zope.interface import implements, directlyProvides
-from zope.schema import Int, TextLine
+from zope.schema import Int, List, Text, TextLine
 from zope.schema.interfaces import IText
 
 class IVideoMetadataRetriever(Interface):
@@ -20,6 +20,22 @@ class IVideoMetadataLookup(Interface):
 class IVideoMetadata(Interface):
     """Video metadata."""
 
+    title = TextLine(title=u'Title',
+                     description=u'Title of the video.',
+                     required=False,
+                     readonly=True)
+
+    description = Text(title=u'Description',
+                       description=u'Description of the video.',
+                       required=False,
+                       readonly=True)
+
+    tags = List(title=u'Tags',
+                description=u'Tags of the video.',
+                required=False,
+                value_type=TextLine(),
+                readonly=True)
+
     thumbnail_url = TextLine(title=u'Thumbnail URL',
                              description=u'A URL pointing to the thumbnail for'
                                          u' the given video.',
@@ -31,17 +47,27 @@ class VideoMetadata(object):
 
     A simple object which can be instantiated with particular keywords.
 
-      >>> VideoMetadata('http://mysite.com/whatever')
+      >>> VideoMetadata(thumbnail_url='http://mysite.com/whatever')
       <VideoMetadata thumbnail_url=http://mysite.com/whatever>
 
     """
     implements(IVideoMetadata)
 
-    def __init__(self, thumbnail_url=None):
+    def __init__(self, title=None, description=None, tags=None,
+                 thumbnail_url=None):
+        self.title = title
+        self.description = description
+        self.tags = tags
         self.thumbnail_url = thumbnail_url
 
     def __str__(self):
-        return '<VideoMetadata thumbnail_url=%s>' % self.thumbnail_url
+        tags = self.tags or []
+        tags = ','.join(tags)
+        return '<VideoMetadata title=%s; description=%s; tags=%s; ' \
+               'thumbnail_url=%s>' % (self.title or '',
+                                      self.description or '',
+                                      tags,
+                                      self.thumbnail_url or '')
     __repr__ = __str__
 
 class IEmbedCode(IText):

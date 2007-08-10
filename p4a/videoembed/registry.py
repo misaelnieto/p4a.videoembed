@@ -49,13 +49,13 @@ class VideoMetadataRetriever(object):
 
       >>> from p4a.videoembed.interfaces import VideoMetadata
       >>> def test_lookup(url):
-      ...     return VideoMetadata(url+'?thumbnail=boo')
+      ...     return VideoMetadata(thumbnail_url=url+'?thumbnail=boo')
       >>> directlyProvides(test_lookup, IVideoMetadataLookup)
       >>> provideAdapter(test_lookup, adapts=(str,),
       ...                provides=IVideoMetadataLookup, name='test')
 
       >>> retriever.get_metadata('http://blah.com')
-      <VideoMetadata thumbnail_url=http://blah.com?thumbnail=boo>
+      <VideoMetadata title=; description=; tags=; thumbnail_url=http://blah.com?thumbnail=boo>
 
     """
     implements(IVideoMetadataRetriever)

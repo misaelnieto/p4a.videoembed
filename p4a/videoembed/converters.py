@@ -1,4 +1,5 @@
 from xml.dom import minidom
+from xml.sax import saxutils
 import re
 from urlparse import urlsplit, urlunsplit
 import urllib2
@@ -69,7 +70,7 @@ def _youtube_metadata_lookup(xml):
       ... </video_details>'''
 
       >>> _youtube_metadata_lookup(xml)
-      <VideoMetadata thumbnail_url=>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
+      <VideoMetadata title=; description=; tags=; thumbnail_url=>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
 
     """
 
@@ -78,7 +79,7 @@ def _youtube_metadata_lookup(xml):
 
     thumbnail_url = xml[thumbstart+14:thumbend].strip()
 
-    return VideoMetadata(thumbnail_url)
+    return VideoMetadata(thumbnail_url=thumbnail_url)
 
 @adapter(str)
 @implementer(IVideoMetadataLookup)
@@ -86,13 +87,13 @@ def youtube_metadata_lookup(url):
     """Retrieve metadata information regarding a youtube video url.
 
       >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo')
-      <VideoMetadata thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
+      <VideoMetadata title=; description=; tags=; thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
     """
 
     host, path, query, fragment = _break_url(url)
     video_id = query['v']
     thumbnail_url = 'http://img.youtube.com/vi/%s/default.jpg' % video_id
-    return VideoMetadata(thumbnail_url)
+    return VideoMetadata(thumbnail_url=thumbnail_url)
 
 @adapter(str, int)
 @implementer(IEmbedCode)
@@ -330,56 +331,106 @@ def _get_google_rss(url):
     fin.close()
     return rss
 
-def _find_node(node, name):
-    """Find a node with a name (tag name) given the node tree."""
+def simple_xpath(node, path, prefix=''):
+    """Find nodes with a name (tag name) given the node tree."""
 
-    if getattr(node, 'tagName', None) == name:
+    full = getattr(node, 'tagName', '')
+    if prefix:
+        full = prefix + '/' + full
+
+    if full == path:
         return node
-    else:
-        for x in node.childNodes:
-            res = _find_node(x, name)
-            if res is not None:
-                return res
-    return None
 
-def _get_google_thumbnail_url(rss):
-    """Parse google video rss and pull out the thumbnail information.
+    for child in node.childNodes:
+        if isinstance(child, minidom.Element):
+            n = simple_xpath(child, path, full)
+            if n is not None:
+                return n
+
+def node_value(node):
+    v = ''
+    for x in node.childNodes:
+        v += x.toxml().strip()
+    return saxutils.unescape(''.join(v.split('\n')))
+
+def _populate_google_data(rss, metadata):
+    """Parse google video rss and pull out the metadata information.
 
       >>> rss = '''<?xml version="1.0" ?>
       ... <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/">
       ... <channel>
       ...     <title>
-      ...       Google Video - Extreme Diet Coke &amp; Mentos Experiments II - The Domino Effect
+      ...       Google Video - The Big Experiment &amp; Rocky
       ...     </title>
       ...     <link>
       ...       http://video.google.com/videoplay?docid=-274981837129821058
       ...     </link>
       ...     <item>
       ...       <media:group>
+      ...         <media:title>
+      ...           The Big Experiment &amp; Rocky
+      ...         </media:title>
+      ...         <media:description>
+      ...           hello world
+      ...
+      ...           Keywords:  eepybird eepy bird
+      ...         </media:description>
       ...         <media:thumbnail height="240" url="http://video.google.com/somepath.jpg" width="320"/>
       ...       </media:group>
       ...     </item>
       ...   </channel>
       ... </rss>
       ... '''
-      >>> _get_google_thumbnail_url(rss)
+
+      >>> metadata = VideoMetadata()
+      >>> _populate_google_data(rss, metadata)
+
+      >>> metadata.title
+      u'The Big Experiment & Rocky'
+      >>> metadata.description
+      u'hello world'
+      >>> metadata.tags
+      set([u'eepybird', u'bird', u'eepy'])
+      >>> metadata.thumbnail_url
       u'http://video.google.com/somepath.jpg'
 
     """
     doc = minidom.parseString(rss)
-    node = _find_node(doc, 'media:thumbnail')
+    node = simple_xpath(doc, u'rss/channel/item/media:group/media:thumbnail')
+    if node is not None and node.hasAttribute('url'):
+        metadata.thumbnail_url = node.getAttribute('url').strip()
+
+    node = simple_xpath(doc, u'rss/channel/item/media:group/media:title')
     if node is not None:
-        return node.getAttribute('url')
-    return None
+        metadata.title = node_value(node)
+
+    node = simple_xpath(doc, u'rss/channel/item/media:group/media:description')
+    description = None
+    tags = None
+    if node is not None:
+        description = node_value(node)
+        pos = description.find('Keywords:')
+        if pos > -1 and len(description) > pos + 9:
+            keywordblurb = description[pos+9:]
+            tags = set([x.strip() for x in keywordblurb.split(' ')
+                        if x.strip()])
+        if pos > -1:
+            description = description[:pos]
+        description = description.strip()
+
+    metadata.description = description
+    metadata.tags = tags
 
 @adapter(str)
 @implementer(IVideoMetadataLookup)
 def google_metadata_lookup(url):
     """Retrieve metadata information regarding a google video url."""
 
+    data = VideoMetadata()
     rss = _get_google_rss(url)
-    thumbnail_url = _get_google_thumbnail_url(rss)
-    return VideoMetadata(thumbnail_url)
+    _populate_google_data(rss, data)
+
+    return data
 
 @adapter(str, int)
 @implementer(IEmbedCode)
