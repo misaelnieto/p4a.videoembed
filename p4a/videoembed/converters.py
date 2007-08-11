@@ -70,14 +70,14 @@ def _youtube_metadata_lookup(xml):
       ... </video_details>'''
 
       >>> _youtube_metadata_lookup(xml)
-      <VideoMetadata title=; description=; tags=; thumbnail_url=>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
+      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
 
     """
 
     thumbstart = xml.find('<thumbnail_url>')
     thumbend = xml.find('</thumbnail_url>')
 
-    thumbnail_url = xml[thumbstart+14:thumbend].strip()
+    thumbnail_url = xml[thumbstart+15:thumbend].strip()
 
     return VideoMetadata(thumbnail_url=thumbnail_url)
 
@@ -87,7 +87,7 @@ def youtube_metadata_lookup(url):
     """Retrieve metadata information regarding a youtube video url.
 
       >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo')
-      <VideoMetadata title=; description=; tags=; thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
+      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
     """
 
     host, path, query, fragment = _break_url(url)
@@ -366,6 +366,9 @@ def _populate_google_data(rss, metadata):
       ...       http://video.google.com/videoplay?docid=-274981837129821058
       ...     </link>
       ...     <item>
+      ...       <author>
+      ...         Jon Doe
+      ...       </author>
       ...       <media:group>
       ...         <media:title>
       ...           The Big Experiment &amp; Rocky
@@ -393,6 +396,8 @@ def _populate_google_data(rss, metadata):
       set([u'eepybird', u'bird', u'eepy'])
       >>> metadata.thumbnail_url
       u'http://video.google.com/somepath.jpg'
+      >>> metadata.author
+      u'Jon Doe'
 
     """
     doc = minidom.parseString(rss)
@@ -403,6 +408,10 @@ def _populate_google_data(rss, metadata):
     node = simple_xpath(doc, u'rss/channel/item/media:group/media:title')
     if node is not None:
         metadata.title = node_value(node)
+
+    node = simple_xpath(doc, u'rss/channel/item/author')
+    if node is not None:
+        metadata.author = node_value(node)
 
     node = simple_xpath(doc, u'rss/channel/item/media:group/media:description')
     description = None

@@ -55,7 +55,7 @@ class VideoMetadataRetriever(object):
       ...                provides=IVideoMetadataLookup, name='test')
 
       >>> retriever.get_metadata('http://blah.com')
-      <VideoMetadata title=; description=; tags=; thumbnail_url=http://blah.com?thumbnail=boo>
+      <VideoMetadata ... thumbnail_url=http://blah.com?thumbnail=boo>
 
     """
     implements(IVideoMetadataRetriever)

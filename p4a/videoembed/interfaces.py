@@ -30,6 +30,11 @@ class IVideoMetadata(Interface):
                        required=False,
                        readonly=True)
 
+    author = TextLine(title=u'Author',
+                      description=u'Author of the video.',
+                      required=False,
+                      readonly=True)
+
     tags = List(title=u'Tags',
                 description=u'Tags of the video.',
                 required=False,
@@ -53,9 +58,11 @@ class VideoMetadata(object):
     """
     implements(IVideoMetadata)
 
-    def __init__(self, title=None, description=None, tags=None,
+    def __init__(self, title=None, author=None,
+                 description=None, tags=None,
                  thumbnail_url=None):
         self.title = title
+        self.author = author
         self.description = description
         self.tags = tags
         self.thumbnail_url = thumbnail_url
@@ -63,8 +70,9 @@ class VideoMetadata(object):
     def __str__(self):
         tags = self.tags or []
         tags = ','.join(tags)
-        return '<VideoMetadata title=%s; description=%s; tags=%s; ' \
+        return '<VideoMetadata title=%s; author=%s; description=%s; tags=%s; ' \
                'thumbnail_url=%s>' % (self.title or '',
+                                      self.author or '',
                                       self.description or '',
                                       tags,
                                       self.thumbnail_url or '')
