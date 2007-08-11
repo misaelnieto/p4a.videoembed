@@ -18,18 +18,7 @@
 
   <adapter factory=".registry.mediaURLConverter" />
 
-  <adapter
-      factory=".converters.youtube_metadata_lookup"
-      name="youtube" />
-  <adapter
-      factory=".converters.youtube_generator"
-      name="youtube" />
-  <adapter
-      factory=".converters.youtube_mediaurl"
-      name="youtube" />
-  <utility
-      component=".converters.youtube_check"
-      name="youtube" />
+  <include package=".providers" />
 
   <adapter
       name="onerevver"
@@ -47,16 +36,6 @@
   <utility
       component=".converters.revver_check"
       name="revver" />
-
-  <adapter
-      factory=".converters.google_metadata_lookup"
-      name="googlevideo" />
-  <adapter
-      name="googlevideo"
-      factory=".converters.google_generator" />
-  <utility
-      component=".converters.google_check"
-      name="googlevideo" />
 
   <adapter
       name="vimeo"
@@ -78,13 +57,6 @@
   <utility
       component=".converters.yahoo_check"
       name="yahoovideo" />
-
-  <adapter
-      name="flashvideo"
-      factory=".converters.flv_generator" />
-  <utility
-      component=".converters.flv_check"
-      name="flashvideo" />
 
   <adapter
       name="ifilm"

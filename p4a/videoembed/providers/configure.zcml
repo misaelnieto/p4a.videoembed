@@ -1,0 +1,8 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <include file="youtube.zcml" />
+  <include file="googlevideo.zcml" />
+  <include file="genericflv.zcml" />
+
+</configure>

@@ -15,6 +15,13 @@ def test_suite():
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.utils',
                          optionflags=doctest.ELLIPSIS),
+
+            DocTestSuite('p4a.videoembed.providers.youtube',
+                         optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.googlevideo',
+                         optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.genericflv',
+                         optionflags=doctest.ELLIPSIS),
             ))
 
 if __name__ == '__main__':

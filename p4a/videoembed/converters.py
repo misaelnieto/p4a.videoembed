@@ -14,98 +14,14 @@ from p4a.videoembed.interfaces import VideoMetadata
 
 from p4a.videoembed.utils import break_url, simple_xpath, node_value
 
-# YouTube!
-@provider(IURLChecker)
-def youtube_check(url):
-    host, path, query, fragment = break_url(url)
-    if host.endswith('youtube.com') and query.has_key('v'):
-        return True
-    return False
-
-youtube_check.index = 100
-
-# This is the appropriate way of getting the thumbnail image.  Due to not
-# wanting to add the dev_id requirement, this code will not be used yet
-def _youtube_metadata_lookup(xml):
-    """Parse the given xml and get appropriate metadata.
-
-      >>> xml = '''
-      ... <video_details>
-      ...     <author>youtubeuser</author>
-      ...     <title>My Trip to California</title>
-      ...     <tags>california trip redwoods</tags>
-      ...     <description>This video shows some highlights of my trip to California last year.</description>
-      ...     <length_seconds>8</length_seconds>
-      ...     <thumbnail_url>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg</thumbnail_url>
-      ... </video_details>'''
-
-      >>> _youtube_metadata_lookup(xml)
-      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
-
-    """
-
-    thumbstart = xml.find('<thumbnail_url>')
-    thumbend = xml.find('</thumbnail_url>')
-
-    thumbnail_url = xml[thumbstart+15:thumbend].strip()
-
-    return VideoMetadata(thumbnail_url=thumbnail_url)
-
-@adapter(str)
-@implementer(IVideoMetadataLookup)
-def youtube_metadata_lookup(url):
-    """Retrieve metadata information regarding a youtube video url.
-
-      >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo')
-      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
-    """
-
-    host, path, query, fragment = break_url(url)
-    video_id = query['v']
-    thumbnail_url = 'http://img.youtube.com/vi/%s/default.jpg' % video_id
-    return VideoMetadata(thumbnail_url=thumbnail_url)
-
-@adapter(str, int)
-@implementer(IEmbedCode)
-def youtube_generator(url, width):
-    """ A quick check for the right url
-
-    >>> print youtube_generator('http://www.youtube.com/watch?v=1111',
-    ...                         width=400)
-    <object width="400" height="330"><param name="movie" value="http://www.youtube.com/v/1111"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/1111" type="application/x-shockwave-flash" wmode="transparent" width="400" height="330"></embed></object>
-
-    """
-    tag = []
-    host, path, query, fragment = break_url(url)
-    height = int(round(0.824*width))
-    tag.append('<object width="%s" height="%s">'%(width, height))
-    video_id = query['v']
-    embed_url = urlunsplit(('http', host, 'v/'+video_id, '', ''))
-    tag.append('<param name="movie" value="%s"></param>'%embed_url)
-    tag.append('<param name="wmode" value="transparent"></param>')
-    tag.append('<embed src="%s" type="application/x-shockwave-flash" '
-               'wmode="transparent" '
-               'width="%s" height="%s"></embed>'%(embed_url,
-                                                  width, height))
-    tag.append('</object>')
-    return u''.join(tag)
-
-class youtube_mediaurl(object):
-    """Returns the quicktime media url for a piece of youtube content:
-
-           >>> url = youtube_mediaurl('http://www.youtube.com/watch?v=1111')
-           >>> url.media_url
-           'http://youtube.com/v/1111.swf'
-           >>> url.mimetype
-           'application/x-shockwave-flash'
-    """
-    implements(IMediaURL)
-    adapts(str)
-    def __init__(self, url):
-        host, path, query, fragment = break_url(url)
-        video_id = query['v']
-        self.mimetype = 'application/x-shockwave-flash'
-        self.media_url = 'http://youtube.com/v/%s.swf'%video_id
+# BBB
+from p4a.videoembed.providers.youtube import (youtube_check,
+                                              youtube_generator,
+                                              youtube_mediaurl)
+from p4a.videoembed.providers.googlevideo import (google_check,
+                                                  google_generator)
+from p4a.videoembed.providers.genericflv import (flv_check,
+                                                 flv_generator)
 
 # one.revver.com
 @provider(IURLChecker)
@@ -282,134 +198,6 @@ def revver_generator(url, width):
     tag.append('</object>')
     return u''.join(tag)
 
-# Google video
-@provider(IURLChecker)
-def google_check(url):
-    host, path, query, fragment = break_url(url)
-    if host.startswith('video.google.') and query.has_key('docid'):
-        return True
-    return False
-
-google_check.index = 400
-
-def _get_google_rss(url):
-    """Retrieve the remote RSS XML for the given video url."""
-    host, path, query, fragment = break_url(url)
-    video_id = query['docid']
-    fin = urllib2.urlopen('http://'+host+'/videofeed?docid='+video_id)
-    rss = fin.read()
-    fin.close()
-    return rss
-
-def _populate_google_data(rss, metadata):
-    """Parse google video rss and pull out the metadata information.
-
-      >>> rss = '''<?xml version="1.0" ?>
-      ... <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/">
-      ... <channel>
-      ...     <title>
-      ...       Google Video - The Big Experiment &amp; Rocky
-      ...     </title>
-      ...     <link>
-      ...       http://video.google.com/videoplay?docid=-274981837129821058
-      ...     </link>
-      ...     <item>
-      ...       <author>
-      ...         Jon Doe
-      ...       </author>
-      ...       <media:group>
-      ...         <media:title>
-      ...           The Big Experiment &amp; Rocky
-      ...         </media:title>
-      ...         <media:description>
-      ...           hello world
-      ...
-      ...           Keywords:  eepybird eepy bird
-      ...         </media:description>
-      ...         <media:thumbnail height="240" url="http://video.google.com/somepath.jpg" width="320"/>
-      ...       </media:group>
-      ...     </item>
-      ...   </channel>
-      ... </rss>
-      ... '''
-
-      >>> metadata = VideoMetadata()
-      >>> _populate_google_data(rss, metadata)
-
-      >>> metadata.title
-      u'The Big Experiment & Rocky'
-      >>> metadata.description
-      u'hello world'
-      >>> metadata.tags
-      set([u'eepybird', u'bird', u'eepy'])
-      >>> metadata.thumbnail_url
-      u'http://video.google.com/somepath.jpg'
-      >>> metadata.author
-      u'Jon Doe'
-
-    """
-    doc = minidom.parseString(rss)
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:thumbnail')
-    if node is not None and node.hasAttribute('url'):
-        metadata.thumbnail_url = node.getAttribute('url').strip()
-
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:title')
-    if node is not None:
-        metadata.title = node_value(node)
-
-    node = simple_xpath(doc, u'rss/channel/item/author')
-    if node is not None:
-        metadata.author = node_value(node)
-
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:description')
-    description = None
-    tags = None
-    if node is not None:
-        description = node_value(node)
-        pos = description.find('Keywords:')
-        if pos > -1 and len(description) > pos + 9:
-            keywordblurb = description[pos+9:]
-            tags = set([x.strip() for x in keywordblurb.split(' ')
-                        if x.strip()])
-        if pos > -1:
-            description = description[:pos]
-        description = description.strip()
-
-    metadata.description = description
-    metadata.tags = tags
-
-@adapter(str)
-@implementer(IVideoMetadataLookup)
-def google_metadata_lookup(url):
-    """Retrieve metadata information regarding a google video url."""
-
-    data = VideoMetadata()
-    rss = _get_google_rss(url)
-    _populate_google_data(rss, data)
-
-    return data
-
-@adapter(str, int)
-@implementer(IEmbedCode)
-def google_generator(url, width):
-    """ A quick check for the right url
-
-    >>> print google_generator('http://video.google.com/videoplay?docid=-18281',
-    ...                         width=400)
-    <embed style="width:400px; height:326px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId=-18281"></embed>
-
-    """
-    tag = []
-    host, path, query, fragment = break_url(url)
-    height = int(round(0.815*width))
-    video_id = query['docid']
-    tag.append('<embed style="width:%spx; height:%spx;" '
-               'id="VideoPlayback" type="application/x-shockwave-flash" '
-               'src="http://video.google.com/googleplayer.swf?docId=%s">'%(
-        width, height, video_id
-        ))
-    tag.append('</embed>')
-    return u''.join(tag)
 
 # Vimeo
 @provider(IURLChecker)
@@ -777,44 +565,6 @@ def quicktime_generator(url, width):
                'controller="True" type="video/quicktime" '
                'autoplay="False"></embed>'%(url, url, width, height))
     tag.append('</object>')
-    return u''.join(tag)
-
-
-# Any flv (only accepts direct urls to flv videos!) uses blip's player
-@provider(IURLChecker)
-def flv_check(url):
-    host, path, query, fragment = break_url(url)
-    if path.endswith('.flv'):
-        return True
-    return False
-
-flv_check.index = 10100
-
-# FLV player url (requires the flv player from http://www.jeroenwijering.com/)
-# indicate the url to your copy of that player here
-
-FLV_PLAYER_URL = "http://location/path/to/flvplayer.swf"
-
-@adapter(str, int)
-@implementer(IEmbedCode)
-def flv_generator(url, width):
-    """ A quick check for the right url, this one requires a direct
-    flv link:
-
-    >>> print flv_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
-    <embed src="http://location/path/to/flvplayer.swf" width="400" height="320" bgcolor="#FFFFFF" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="file=http://blip.tv/file/get/SomeVideo.flv&autostart=true"></embed>
-
-    """
-    tag = []
-    height = int(round(0.8*width))
-
-    video_url = url
-    tag.append('<embed src="%s" width="%s" height="%s" bgcolor="#FFFFFF" '
-        'type="application/x-shockwave-flash" '
-        'pluginspage="http://www.macromedia.com/go/getflashplayer" '
-        'flashvars="file=%s&autostart=true">'%(FLV_PLAYER_URL, width, height,
-                                                video_url))
-    tag.append('</embed>')
     return u''.join(tag)
 
 # VH1 VSpot

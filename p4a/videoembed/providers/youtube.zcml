@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      factory=".youtube.youtube_metadata_lookup"
+      name="youtube" />
+  <adapter
+      factory=".youtube.youtube_generator"
+      name="youtube" />
+  <adapter
+      factory=".youtube.youtube_mediaurl"
+      name="youtube" />
+  <utility
+      component=".youtube.youtube_check"
+      name="youtube" />
+
+</configure>
