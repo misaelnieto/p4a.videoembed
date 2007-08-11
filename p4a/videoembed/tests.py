@@ -16,11 +16,15 @@ def test_suite():
             DocTestSuite('p4a.videoembed.utils',
                          optionflags=doctest.ELLIPSIS),
 
-            DocTestSuite('p4a.videoembed.providers.youtube',
+            DocTestSuite('p4a.videoembed.providers',
+                         optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.genericflv',
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.providers.googlevideo',
                          optionflags=doctest.ELLIPSIS),
-            DocTestSuite('p4a.videoembed.providers.genericflv',
+            DocTestSuite('p4a.videoembed.providers.revver',
+                         optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.youtube',
                          optionflags=doctest.ELLIPSIS),
             ))
 

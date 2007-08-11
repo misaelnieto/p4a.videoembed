@@ -1,8 +1,94 @@
 <configure
     xmlns="http://namespaces.zope.org/zope">
 
-  <include file="youtube.zcml" />
-  <include file="googlevideo.zcml" />
   <include file="genericflv.zcml" />
+  <include file="googlevideo.zcml" />
+  <include file="revver.zcml" />
+  <include file="youtube.zcml" />
+
+  <adapter
+      name="vimeo"
+      factory=".vimeo_generator" />
+  <utility
+      component=".vimeo_check"
+      name="vimeo" />
+
+  <adapter
+      name="vmix"
+      factory=".vmix_generator" />
+  <utility
+      component=".vmix_check"
+      name="vmix" />
+
+  <adapter
+      name="yahoovideo"
+      factory=".yahoo_generator" />
+  <utility
+      component=".yahoo_check"
+      name="yahoovideo" />
+
+  <adapter
+      name="ifilm"
+      factory=".ifilm_generator" />
+  <utility
+      component=".ifilm_check"
+      name="ifilm" />
+
+  <adapter
+      name="myspace"
+      factory=".myspace_generator" />
+  <utility
+      component=".myspace_check"
+      name="myspace" />
+
+  <adapter
+      name="metacafe"
+      factory=".metacafe_generator" />
+  <utility
+      component=".metacafe_check"
+      name="metacafe" />
+
+  <adapter
+      name="collegehumor"
+      factory=".collegehumor_generator" />
+  <utility
+      component=".collegehumor_check"
+      name="collegehumor" />
+
+  <adapter
+      name="veoh"
+      factory=".veoh_generator" />
+  <utility
+      component=".veoh_check"
+      name="veoh" />
+
+  <adapter
+      name="quicktime"
+      factory=".quicktime_generator" />
+  <utility
+      component=".quicktime_check"
+      name="quicktime" />
+
+  <adapter
+      name="vspot"
+      factory=".vspot_generator" />
+  <utility
+      component=".vspot_check"
+      name="vspot" />
+
+  <adapter
+      name="liveleak"
+      factory=".liveleak_generator" />
+  <utility
+      component=".liveleak_check"
+      name="liveleak" />
+
+  <adapter
+      name="superdeluxe"
+      factory=".superdeluxe_generator" />
+  <utility
+      component=".superdeluxe_check"
+      name="superdeluxe" />
+
 
 </configure>

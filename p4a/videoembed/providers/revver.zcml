@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      name="onerevver"
+      factory=".revver.onerevver_generator" />
+  <adapter
+      factory=".revver.onerevver_mediaurl"
+      name="onerevver" />
+  <utility
+      component=".revver.onerevver_check"
+      name="onerevver" />
+
+  <adapter
+      factory=".revver.revver_generator"
+      name="revver" />
+  <utility
+      component=".revver.revver_check"
+      name="revver" />
+
+</configure>
