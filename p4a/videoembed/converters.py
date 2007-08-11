@@ -1,12 +1,10 @@
 from xml.dom import minidom
-from xml.sax import saxutils
 import re
-from urlparse import urlsplit, urlunsplit
+from urlparse import urlunsplit
 import urllib2
 from urllib import quote, quote_plus
 from zope.interface import implements, implementer
 from zope.component import adapts, adapter
-from p4a.videoembed._cache import BufferCache
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
@@ -14,40 +12,12 @@ from p4a.videoembed.interfaces import IMediaURL
 from p4a.videoembed.interfaces import IVideoMetadataLookup
 from p4a.videoembed.interfaces import VideoMetadata
 
-def _break_url(url):
-    """A helper method for extracting url parts and parsing the query string
-
-    >>> _break_url('http://www.blah.com/foo/bar?blah=2&blee=bix#1234')
-    ('www.blah.com', '/foo/bar', {'blee': 'bix', 'blah': '2'}, '1234')
-
-    Needs to do url quoting:
-
-    >>> _break_url('http://www.blah.com/foo / bar?blah=2>&blee=bix#1234')
-    ('www.blah.com', '/foo%20/%20bar', {'blee': 'bix', 'blah': '2%3E'}, '1234')
-
-    """
-    # Splits and encodes the url, and breaks the query string into a dict
-    proto, host, path, query, fragment = urlsplit(url)
-    path = quote(path)
-    query = quote(query, safe='&=')
-    fragment = quote(fragment, safe='')
-    query_elems = {}
-    # Put the query elems in a dict
-    for pair in query.split('&'):
-        pair = pair.split('=')
-        if pair:
-            query_elems[pair[0]] = pair[-1]
-    return host, path, query_elems, fragment
-
-# We make this method cache its results because it will be called
-# once for most url checks and also when generating the embed code
-# no need to reparse the url n times
-break_url = BufferCache(_break_url)
+from p4a.videoembed.utils import break_url, simple_xpath, node_value
 
 # YouTube!
 @provider(IURLChecker)
 def youtube_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('youtube.com') and query.has_key('v'):
         return True
     return False
@@ -90,7 +60,7 @@ def youtube_metadata_lookup(url):
       <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
     """
 
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     video_id = query['v']
     thumbnail_url = 'http://img.youtube.com/vi/%s/default.jpg' % video_id
     return VideoMetadata(thumbnail_url=thumbnail_url)
@@ -106,7 +76,7 @@ def youtube_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.824*width))
     tag.append('<object width="%s" height="%s">'%(width, height))
     video_id = query['v']
@@ -132,7 +102,7 @@ class youtube_mediaurl(object):
     implements(IMediaURL)
     adapts(str)
     def __init__(self, url):
-        host, path, query, fragment = _break_url(url)
+        host, path, query, fragment = break_url(url)
         video_id = query['v']
         self.mimetype = 'application/x-shockwave-flash'
         self.media_url = 'http://youtube.com/v/%s.swf'%video_id
@@ -140,7 +110,7 @@ class youtube_mediaurl(object):
 # one.revver.com
 @provider(IURLChecker)
 def onerevver_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host == 'one.revver.com':
         return True
     return False
@@ -151,7 +121,7 @@ FINALDIGITS = re.compile(r'.*?(\d+)$')
 WATCHDIGITS = re.compile(r'.*?/(\d+)(?:/\D+?)?(?:/(\d+))?$')
 
 def _onerevver_getids(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     video_id = None
     affiliate_id = 0
 
@@ -234,7 +204,7 @@ class onerevver_mediaurl(object):
     implements(IMediaURL)
     adapts(str)
     def __init__(self, url):
-        host, path, query, fragment = _break_url(url)
+        host, path, query, fragment = break_url(url)
         video_id, affiliate_id = _onerevver_getids(url)
         self.mimetype = 'video/quicktime'
         self.media_url = 'http://media.revver.com/qt;sharer=%s/%s.mov'%(
@@ -243,7 +213,7 @@ class onerevver_mediaurl(object):
 # The original revver QT embed
 @provider(IURLChecker)
 def revver_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('revver.com'):
         return True
     return False
@@ -265,7 +235,7 @@ def revver_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     video_ids = []
     video_id = ''
     height = int(round(0.85*width))
@@ -315,7 +285,7 @@ def revver_generator(url, width):
 # Google video
 @provider(IURLChecker)
 def google_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.startswith('video.google.') and query.has_key('docid'):
         return True
     return False
@@ -324,34 +294,12 @@ google_check.index = 400
 
 def _get_google_rss(url):
     """Retrieve the remote RSS XML for the given video url."""
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     video_id = query['docid']
     fin = urllib2.urlopen('http://'+host+'/videofeed?docid='+video_id)
     rss = fin.read()
     fin.close()
     return rss
-
-def simple_xpath(node, path, prefix=''):
-    """Find nodes with a name (tag name) given the node tree."""
-
-    full = getattr(node, 'tagName', '')
-    if prefix:
-        full = prefix + '/' + full
-
-    if full == path:
-        return node
-
-    for child in node.childNodes:
-        if isinstance(child, minidom.Element):
-            n = simple_xpath(child, path, full)
-            if n is not None:
-                return n
-
-def node_value(node):
-    v = ''
-    for x in node.childNodes:
-        v += x.toxml().strip()
-    return saxutils.unescape(''.join(v.split('\n')))
 
 def _populate_google_data(rss, metadata):
     """Parse google video rss and pull out the metadata information.
@@ -452,7 +400,7 @@ def google_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.815*width))
     video_id = query['docid']
     tag.append('<embed style="width:%spx; height:%spx;" '
@@ -466,7 +414,7 @@ def google_generator(url, width):
 # Vimeo
 @provider(IURLChecker)
 def vimeo_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('vimeo.com'):
         return True
     return False
@@ -482,7 +430,7 @@ def vimeo_generator(url, width):
     <embed src="http://www.vimeo.com/moogaloop.swf?clip_id=18281" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.75*width))
 
     video_id = None
@@ -505,7 +453,7 @@ def vimeo_generator(url, width):
 # Vmix
 @provider(IURLChecker)
 def vmix_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('.vmix.com') and query.has_key('id'):
         return True
     return False
@@ -523,7 +471,7 @@ def vmix_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.833*width))
     video_id = query['id']
     p_type = query['type']
@@ -540,7 +488,7 @@ def vmix_generator(url, width):
 # Yahoo! video
 @provider(IURLChecker)
 def yahoo_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host == 'video.yahoo.com' and query.has_key('vid'):
         return True
     return False
@@ -559,7 +507,7 @@ def yahoo_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.824*width))
     video_id = query['vid']
     # The video id has two parts split by a . we need the latter one
@@ -594,7 +542,7 @@ def yahoo_generator(url, width):
 # ifilm
 @provider(IURLChecker)
 def ifilm_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('ifilm.com'):
         return True
     return False
@@ -610,7 +558,7 @@ def ifilm_generator(url, width):
     <embed width="400" height="326" src="http://www.ifilm.com/efp" quality="high" bgcolor="000000" name="efp" align="middle" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="flvbaseclip=2690458&"></embed>
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.815*width))
 
     path_elems = path.split('/')
@@ -626,7 +574,7 @@ def ifilm_generator(url, width):
 # myspace
 @provider(IURLChecker)
 def myspace_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('vids.myspace.com') and query.has_key('videoid'):
         return True
     return False
@@ -644,7 +592,7 @@ def myspace_generator(url, width):
     <embed src="http://lads.myspace.com/videos/vplayer.swf" flashvars="m=1577693374&type=video" type="application/x-shockwave-flash" width="400" height="322"></embed>
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.805*width))
 
     video_id = query.get('videoid', None)
@@ -662,7 +610,7 @@ def myspace_generator(url, width):
 # metacafe
 @provider(IURLChecker)
 def metacafe_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('metacafe.com'):
         return True
     return False
@@ -678,7 +626,7 @@ def metacafe_generator(url, width):
     <embed src="http://www.metacafe.com/fplayer/344239/amazing_singing_parrot.swf" width="400" height="345" wmode="transparent" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash"></embed>
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.863*width))
 
     path_elems = path.split('/')
@@ -703,7 +651,7 @@ def metacafe_generator(url, width):
 # College Humor (nearly identical to vimeo)
 @provider(IURLChecker)
 def collegehumor_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('collegehumor.com'):
         return True
     return False
@@ -719,7 +667,7 @@ def collegehumor_generator(url, width):
     <embed src="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id=1752121" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.75*width))
 
     video_id = None
@@ -742,7 +690,7 @@ def collegehumor_generator(url, width):
 # Veoh
 @provider(IURLChecker)
 def veoh_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('veoh.com'):
         return True
     return False
@@ -761,7 +709,7 @@ def veoh_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.81*width))
     path_list = path.split('/')
 
@@ -788,7 +736,7 @@ def veoh_generator(url, width):
 # The original revver QT embed
 @provider(IURLChecker)
 def quicktime_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if path.endswith('.mov') or path.endswith('.qt') or path.endswith('.m4v'):
         return True
     return False
@@ -835,7 +783,7 @@ def quicktime_generator(url, width):
 # Any flv (only accepts direct urls to flv videos!) uses blip's player
 @provider(IURLChecker)
 def flv_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if path.endswith('.flv'):
         return True
     return False
@@ -872,7 +820,7 @@ def flv_generator(url, width):
 # VH1 VSpot
 @provider(IURLChecker)
 def vspot_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('vh1.com') and 'vspot' in path and query.has_key('id') \
            and query.has_key('vid'):
         return True
@@ -892,7 +840,7 @@ def vspot_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.98*width))
 
     video_id = query['vid']
@@ -917,7 +865,7 @@ def vspot_generator(url, width):
 # LiveLeak.com
 @provider(IURLChecker)
 def liveleak_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('liveleak.com') and query.has_key('i'):
         return True
     return False
@@ -936,7 +884,7 @@ def liveleak_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.82*width))
 
     video_id = query['i']
@@ -956,7 +904,7 @@ def liveleak_generator(url, width):
 # SuperDeluxe.com
 @provider(IURLChecker)
 def superdeluxe_check(url):
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     if host.endswith('superdeluxe.com') and query.has_key('id'):
         return True
     return False
@@ -973,7 +921,7 @@ def superdeluxe_generator(url, width):
 
     """
     tag = []
-    host, path, query, fragment = _break_url(url)
+    host, path, query, fragment = break_url(url)
     height = int(round(0.875*width))
 
     video_id = query['id']

@@ -13,6 +13,8 @@ def test_suite():
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.converters',
                          optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.utils',
+                         optionflags=doctest.ELLIPSIS),
             ))
 
 if __name__ == '__main__':
