@@ -5,6 +5,7 @@ import urllib2
 from urllib import quote, quote_plus
 from zope.interface import implements, implementer
 from zope.component import adapts, adapter
+from p4a.videoembed.utils import break_url
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker

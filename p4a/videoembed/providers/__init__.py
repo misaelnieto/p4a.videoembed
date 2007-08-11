@@ -12,7 +12,7 @@ from p4a.videoembed.interfaces import IMediaURL
 from p4a.videoembed.interfaces import IVideoMetadataLookup
 from p4a.videoembed.interfaces import VideoMetadata
 
-from p4a.videoembed.utils import break_url, simple_xpath, node_value
+from p4a.videoembed.utils import break_url
 
 # Vimeo
 @provider(IURLChecker)

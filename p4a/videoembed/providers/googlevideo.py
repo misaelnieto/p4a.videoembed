@@ -1,7 +1,7 @@
 import urllib2
 from xml.dom import minidom
 from urlparse import urlunsplit
-from p4a.videoembed.utils import break_url, simple_xpath, node_value
+from p4a.videoembed.utils import break_url, xpath_text, xpath_attr
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IMediaURL
@@ -78,23 +78,19 @@ def _populate_google_data(rss, metadata):
 
     """
     doc = minidom.parseString(rss)
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:thumbnail')
-    if node is not None and node.hasAttribute('url'):
-        metadata.thumbnail_url = node.getAttribute('url').strip()
+    metadata.thumbnail_url = xpath_attr( \
+        doc, u'rss/channel/item/media:group/media:thumbnail', 'url')
+    metadata.title = xpath_text( \
+        doc, u'rss/channel/item/media:group/media:title')
+    metadata.author = xpath_text( \
+        doc, u'rss/channel/item/author')
 
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:title')
-    if node is not None:
-        metadata.title = node_value(node)
-
-    node = simple_xpath(doc, u'rss/channel/item/author')
-    if node is not None:
-        metadata.author = node_value(node)
-
-    node = simple_xpath(doc, u'rss/channel/item/media:group/media:description')
+    text = xpath_text( \
+        doc, u'rss/channel/item/media:group/media:description')
     description = None
     tags = None
-    if node is not None:
-        description = node_value(node)
+    if text:
+        description = text
         pos = description.find('Keywords:')
         if pos > -1 and len(description) > pos + 9:
             keywordblurb = description[pos+9:]

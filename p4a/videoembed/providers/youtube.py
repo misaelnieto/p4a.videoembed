@@ -1,13 +1,25 @@
+import urllib2
+from xml.dom import minidom
 from urlparse import urlunsplit
-from p4a.videoembed.utils import break_url
+from p4a.videoembed.utils import break_url, xpath_text
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IMediaURL
 from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IVideoMetadataLookup
 from p4a.videoembed.interfaces import VideoMetadata
-from zope.interface import implements, implementer
-from zope.component import adapts, adapter
+from zope.component import adapts, adapter, queryUtility
+from zope.interface import implements, implementer, Interface
+from zope.schema import TextLine
+
+import logging
+logger = logging.getLogger('p4a.videoembed.providers.youtube')
+
+class IYoutubeConfig(Interface):
+    """Configuration for accessing the RESTful api for youtube."""
+
+    dev_id = TextLine(title=u'Developer Id',
+                      required=True)
 
 # YouTube!
 @provider(IURLChecker)
@@ -24,41 +36,85 @@ youtube_check.index = 100
 def _youtube_metadata_lookup(xml):
     """Parse the given xml and get appropriate metadata.
 
-      >>> xml = '''
-      ... <video_details>
+      >>> xml = '''<?xml version="1.0" ?>
+      ... <ut_response status="ok">
+      ...   <video_details>
       ...     <author>youtubeuser</author>
-      ...     <title>My Trip to California</title>
+      ...     <title>Random Title</title>
+      ...     <rating_avg>3.25</rating_avg>
+      ...     <rating_count>10</rating_count>
       ...     <tags>california trip redwoods</tags>
-      ...     <description>This video shows some highlights of my trip to California last year.</description>
+      ...     <description>Random description.</description>
+      ...     <update_time>1129803584</update_time>
+      ...     <view_count>7</view_count>
+      ...     <upload_time>1127760809</upload_time>
       ...     <length_seconds>8</length_seconds>
-      ...     <thumbnail_url>http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg</thumbnail_url>
-      ... </video_details>'''
+      ...     <recording_date>None</recording_date>
+      ...     <recording_location/>
+      ...     <recording_country/>
+      ...     <thumbnail_url>http://blah.com/default.jpg</thumbnail_url>
+      ...   </video_details>
+      ... </ut_response>'''
 
-      >>> _youtube_metadata_lookup(xml)
-      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/bkZHmZmZUJk/default.jpg>
+      >>> data = _youtube_metadata_lookup(xml)
+      >>> data.author
+      u'youtubeuser'
+      >>> data.title
+      u'Random Title'
+      >>> data.description
+      u'Random description.'
+      >>> data.tags
+      [u'california', u'trip', u'redwoods']
+      >>> data.thumbnail_url
+      u'http://blah.com/default.jpg'
 
     """
 
-    thumbstart = xml.find('<thumbnail_url>')
-    thumbend = xml.find('</thumbnail_url>')
+    doc = minidom.parseString(xml)
+    metadata = VideoMetadata()
+    metadata.title = xpath_text(doc, u'ut_response/video_details/title')
+    metadata.author = xpath_text(doc, u'ut_response/video_details/author')
+    metadata.description = xpath_text(\
+        doc, u'ut_response/video_details/description')
+    metadata.thumbnail_url = xpath_text(\
+        doc, u'ut_response/video_details/thumbnail_url')
+    metadata.tags = xpath_text(\
+        doc, u'ut_response/video_details/tags').split(' ')
 
-    thumbnail_url = xml[thumbstart+15:thumbend].strip()
+    return metadata
 
-    return VideoMetadata(thumbnail_url=thumbnail_url)
+def _get_metadata_xml(url, dev_id):
+    """Retrieve the remote XML for the given video url."""
+
+    base_url = 'http://www.youtube.com/api2_rest' \
+               '?method=youtube.videos.get_details' \
+               '&dev_id=%(dev_id)s&video_id=%(video_id)s'
+
+    host, path, query, fragment = break_url(url)
+    video_id = query['v']
+    fin = urllib2.urlopen(base_url % dict(dev_id=dev_id, video_id=video_id))
+    xml = fin.read()
+    fin.close()
+    return xml
 
 @adapter(str)
 @implementer(IVideoMetadataLookup)
 def youtube_metadata_lookup(url):
     """Retrieve metadata information regarding a youtube video url.
 
-      >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo')
-      <VideoMetadata ... thumbnail_url=http://img.youtube.com/vi/foo/default.jpg>
+      >>> youtube_metadata_lookup('http://www.youtube.com/watch?v=foo') is None
+      True
+
     """
 
-    host, path, query, fragment = break_url(url)
-    video_id = query['v']
-    thumbnail_url = 'http://img.youtube.com/vi/%s/default.jpg' % video_id
-    return VideoMetadata(thumbnail_url=thumbnail_url)
+    config = queryUtility(IYoutubeConfig)
+    if config is None:
+        logger.warn("No IYoutubeConfig utility found, remote metadata "
+                    "retrieval disabled")
+        return None
+
+    xml = _get_metadata_xml(url, config.dev_id)
+    return _youtube_metadata_lookup(xml)
 
 @adapter(str, int)
 @implementer(IEmbedCode)
@@ -101,4 +157,3 @@ class youtube_mediaurl(object):
         video_id = query['v']
         self.mimetype = 'application/x-shockwave-flash'
         self.media_url = 'http://youtube.com/v/%s.swf'%video_id
-

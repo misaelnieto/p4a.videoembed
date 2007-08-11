@@ -34,15 +34,15 @@ def _break_url(url):
 # no need to reparse the url n times
 break_url = BufferCache(_break_url)
 
-def simple_xpath(node, path, prefix=''):
+def xpath_node(node, path, prefix=''):
     """Find nodes with a basic xpath path given the node tree.
 
       >>> from xml.dom import minidom
       >>> doc = minidom.parseString('<foo><bar></bar></foo>')
 
-      >>> simple_xpath(doc, 'abcdef/bar') is None
+      >>> xpath_node(doc, 'abcdef/bar') is None
       True
-      >>> simple_xpath(doc, 'foo/bar').tagName
+      >>> xpath_node(doc, 'foo/bar').tagName
       u'bar'
 
     """
@@ -56,7 +56,7 @@ def simple_xpath(node, path, prefix=''):
 
     for child in node.childNodes:
         if isinstance(child, minidom.Element):
-            n = simple_xpath(child, path, full)
+            n = xpath_node(child, path, full)
             if n is not None:
                 return n
 
@@ -85,3 +85,15 @@ def node_value(node):
         v += x.toxml().strip()
     return saxutils.unescape(''.join(v.split('\n')))
 
+def xpath_text(node, path):
+    node = xpath_node(node, path)
+    if node is not None:
+        return node_value(node)
+    return u''
+
+def xpath_attr(node, path, attr):
+    node = xpath_node(node, path)
+    if node is not None and isinstance(node, minidom.Element) \
+           and node.hasAttribute(attr):
+        return node.getAttribute(attr)
+    return u''
