@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      name="bliptv"
+      factory=".bliptv.bliptv_generator" />
+  <utility
+      name="bliptv"
+      component=".bliptv.bliptv_check" />
+
+</configure>

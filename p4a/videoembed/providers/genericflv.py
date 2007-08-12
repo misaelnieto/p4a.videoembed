@@ -17,6 +17,15 @@ from p4a.videoembed.interfaces import VideoMetadata
 # Any flv (only accepts direct urls to flv videos!) uses blip's player
 @provider(IURLChecker)
 def flv_check(url):
+    """Check to see if the given url matches.
+
+      >>> flv_check('http://someplace.com')
+      False
+      >>> flv_check('http://someplace.com/file.flv')
+      True
+
+    """
+
     host, path, query, fragment = break_url(url)
     if path.endswith('.flv'):
         return True
@@ -41,10 +50,23 @@ def flv_generator(url, width):
     ''' A quick check for the right url, this one requires a direct
     flv link:
 
-    >>> print flv_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
-    <embed src="http://location/path/to/flvplayer.swf" width="400" height="320" bgcolor="#FFFFFF" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="file=http://blip.tv/file/get/SomeVideo.flv&autostart=true"></embed>
+      >>> print flv_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
+      <embed src="http://location/path/to/flvplayer.swf" width="400" height="320" bgcolor="#FFFFFF" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="file=http://blip.tv/file/get/SomeVideo.flv&autostart=true"></embed>
+
+    To get a proper url for the actual flash player we register a new
+    IFlvPlayerConfig utility.
+
+      >>> from zope.component import provideUtility
+      >>> class FlvPlayerConfig(object):
+      ...     implements(IFlvPlayerConfig)
+      ...     player_url = "http://somehost.com/someplayer.swf"
+      >>> provideUtility(FlvPlayerConfig())
+
+      >>> print flv_generator('http://blip.tv/file/get/SomeVideo.flv', width=400)
+      <embed src="http://somehost.com/someplayer.swf" width="400" height="320" bgcolor="#FFFFFF" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="file=http://blip.tv/file/get/SomeVideo.flv&autostart=true"></embed>
 
     '''
+
     tag = []
     height = int(round(0.8*width))
 

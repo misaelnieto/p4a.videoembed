@@ -97,3 +97,9 @@ def xpath_attr(node, path, attr):
            and node.hasAttribute(attr):
         return node.getAttribute(attr)
     return u''
+
+def squeeze_xml(xml):
+    new_xml = u''
+    for piece in xml.split():
+        new_xml += ' ' + piece
+    return new_xml.strip()

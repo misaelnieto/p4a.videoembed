@@ -14,6 +14,15 @@ from zope.component import adapts, adapter
 # Google video
 @provider(IURLChecker)
 def google_check(url):
+    """Check to see if the given url matches.
+
+      >>> google_check('http://someplace.com')
+      False
+      >>> google_check('http://video.google.ca/?docid=foo')
+      True
+
+    """
+
     host, path, query, fragment = break_url(url)
     if host.startswith('video.google.') and query.has_key('docid'):
         return True

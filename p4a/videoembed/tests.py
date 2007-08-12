@@ -18,8 +18,12 @@ def test_suite():
 
             DocTestSuite('p4a.videoembed.providers',
                          optionflags=doctest.ELLIPSIS),
-            DocTestSuite('p4a.videoembed.providers.genericflv',
+            DocTestSuite('p4a.videoembed.providers.bliptv',
                          optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.genericflv',
+                         optionflags=doctest.ELLIPSIS,
+                         setUp=testing.setUp,
+                         tearDown=testing.tearDown),
             DocTestSuite('p4a.videoembed.providers.googlevideo',
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.providers.revver',
