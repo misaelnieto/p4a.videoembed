@@ -7,13 +7,18 @@ from p4a.videoembed._cache import BufferCache
 def _break_url(url):
     """A helper method for extracting url parts and parsing the query string
 
-    >>> _break_url('http://www.blah.com/foo/bar?blah=2&blee=bix#1234')
-    ('www.blah.com', '/foo/bar', {'blee': 'bix', 'blah': '2'}, '1234')
+      >>> _break_url('http://www.blah.com/foo/bar?blah=2&blee=bix#1234')
+      ('www.blah.com', '/foo/bar', {'blee': 'bix', 'blah': '2'}, '1234')
 
     Needs to do url quoting:
 
-    >>> _break_url('http://www.blah.com/foo / bar?blah=2>&blee=bix#1234')
-    ('www.blah.com', '/foo%20/%20bar', {'blee': 'bix', 'blah': '2%3E'}, '1234')
+      >>> _break_url('http://www.blah.com/foo / bar?bla=2>&blee=bix#1234')
+      ('www.blah.com', '/foo%20/%20bar', {'blee': 'bix', 'bla': '2%3E'}, '1234')
+
+    Make sure {'': ''} doesn't get returned for the query when there are no
+    query args (this used to be the case).
+      >>> _break_url('http://www.blah.com/foo')
+      ('www.blah.com', '/foo', {}, '')
 
     """
     # Splits and encodes the url, and breaks the query string into a dict
@@ -25,7 +30,7 @@ def _break_url(url):
     # Put the query elems in a dict
     for pair in query.split('&'):
         pair = pair.split('=')
-        if pair:
+        if pair and pair[0]:
             query_elems[pair[0]] = pair[-1]
     return host, path, query_elems, fragment
 
