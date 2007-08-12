@@ -18,43 +18,93 @@ def bliptv_check(url):
 
       >>> bliptv_check('http://someplace.com')
       False
-      >>> bliptv_check('http://blip.tv/somefile.flv')
+      >>> bliptv_check('http://blip.tv/file/somefile.flv')
+      False
+      >>> bliptv_check('http://blip.tv/file/1234')
       True
 
     """
 
     host, path, query, fragment = break_url(url)
-    if host.endswith('blip.tv') and path.endswith('.flv'):
-        return True
+    if host.endswith('blip.tv'):
+        pieces = path.split('/')
+        if len(pieces) == 3 \
+               and pieces[0] == '' \
+               and pieces[1] == 'file' \
+               and pieces[2].isdigit():
+            return True
     return False
 
 bliptv_check.index = 1000
 
-EMBED_TEMPLATE = u'''
-<embed wmode="transparent"
-       src="http://blip.tv/scripts/flash/blipplayer.swf?autoStart=false&file=%(file_url)s&source=3"
-       quality="high" width="%(width)s" height="%(height)s" name="movie"
-       type="application/x-shockwave-flash"
-       pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>
+EMBED_HTML = u'''
+<object
+    type="application/x-shockwave-flash"
+    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+    codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=8,0,0,0"
+    width="%(width)s"
+    height="%(height)s"
+    id="showplayer"
+    allowfullscreen="true"
+    allowscriptaccess="always">
+    <param name="movie"
+        value="http://blip.tv/scripts/flash/showplayer.swf?file=%(file_url)s" />
+     <param name="allowscriptaccess" value="always" />
+     <param name="allowfullscreen" value="true" />
+     <param name="quality" value="best" />
+     <param name="wmode" value="window" />
+     <embed
+        type="application/x-shockwave-flash"
+        width="%(width)s"
+        height="%(height)s"
+        id="shoplayerembed"
+        src="http://blip.tv/scripts/flash/showplayer.swf?file=%(file_url)s"
+        pluginspage="http://www.macromedia.com/go/getflashplayer"
+        wmode="window"
+        allowfullscreen="true"
+        allowscriptaccess="always"
+     />
+</object>
 '''
+EMBED_HTML = squeeze_xml(EMBED_HTML)
+
+def _rss_url(url):
+    """Return RSS url for the video url.
+
+      >>> _rss_url('http://someplace.com')
+      'http://someplace.com?skin=rss'
+
+      >>> _rss_url('http://someplace.com?arg1=foo')
+      'http://someplace.com?arg1=foo&skin=rss'
+    """
+
+    host, path, query, fragment = break_url(url)
+    file_url = url
+    if len(query.keys()) == 0:
+        file_url += '?skin=rss'
+    else:
+        file_url += '&skin=rss'
+    return file_url
 
 @adapter(str, int)
 @implementer(IEmbedCode)
 def bliptv_generator(url, width):
     """ A quick check for the right url
 
-    >>> print bliptv_generator('http://blip.tv/file/get/random.flv',
+    >>> html = bliptv_generator('http://blip.tv/file/get/random.flv',
     ...                         width=400)
-    <embed wmode="transparent" src="http://blip.tv/scripts/flash/blipplayer.swf?autoStart=false&file=http%3A//blip.tv/file/get/random.flv&source=3" quality="high" width="400" height="326" name="movie" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>
+    >>> 'showplayer.swf?file=http%3A//blip.tv/file/get/random.flv' in html
+    True
 
     """
     tag = []
     host, path, query, fragment = break_url(url)
     height = int(round(0.815*width))
-    file_id = path.split('/')[-1]
+
+    file_url = _rss_url(url)
 
     kwargs = dict(width=width,
                   height=height,
-                  file_url=urllib.quote(url))
+                  file_url=urllib.quote(file_url))
 
-    return squeeze_xml(EMBED_TEMPLATE % kwargs)
+    return EMBED_HTML % kwargs
