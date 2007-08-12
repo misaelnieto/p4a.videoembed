@@ -3,6 +3,9 @@
 
   <adapter
       name="bliptv"
+      factory=".bliptv.bliptv_metadata_lookup" />
+  <adapter
+      name="bliptv"
       factory=".bliptv.bliptv_generator" />
   <utility
       name="bliptv"

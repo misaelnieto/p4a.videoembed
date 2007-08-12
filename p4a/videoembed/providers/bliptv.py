@@ -2,7 +2,9 @@ import urllib
 import urllib2
 from xml.dom import minidom
 from urlparse import urlunsplit
-from p4a.videoembed.utils import break_url, xpath_text, xpath_attr, squeeze_xml
+from p4a.videoembed.utils import (break_url, xpath_text,
+                                  xpath_attr, squeeze_xml,
+                                  remote_content)
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IMediaURL
@@ -108,3 +110,67 @@ def bliptv_generator(url, width):
                   file_url=urllib.quote(file_url))
 
     return EMBED_HTML % kwargs
+
+def _populate_bliptv_data(rss, metadata):
+    """Parse bliptv video rss and pull out the metadata information.
+
+      >>> rss = '''<?xml version="1.0" ?>
+      ... <rss version="2.0"
+      ...      xmlns:media="http://search.yahoo.com/mrss/"
+      ...      xmlns:blip="http://blip.tv/dtd/blip/1.0">
+      ... <channel>
+      ...     <item>
+      ...       <title>
+      ...         Random Video
+      ...       </title>
+      ...       <blip:user>someuser</blip:user>
+      ...       <blip:picture>http://someurl.com/somefile.jpg</blip:picture>
+      ...       <blip:puredescription>
+      ...         This is a random description.
+      ...       </blip:puredescription>
+      ...       <media:keywords>abc, def</media:keywords>
+      ...     </item>
+      ...   </channel>
+      ... </rss>
+      ... '''
+
+      >>> metadata = VideoMetadata()
+      >>> _populate_bliptv_data(rss, metadata)
+
+      >>> metadata.title
+      u'Random Video'
+      >>> metadata.description
+      u'This is a random description.'
+      >>> metadata.tags
+      set([u'abc', u'def'])
+      >>> metadata.thumbnail_url
+      u'http://someurl.com/somefile.jpg'
+      >>> metadata.author
+      u'someuser'
+
+    """
+    doc = minidom.parseString(rss)
+    metadata.thumbnail_url = xpath_text( \
+        doc, u'rss/channel/item/blip:picture')
+    metadata.title = xpath_text( \
+        doc, u'rss/channel/item/title')
+    metadata.author = xpath_text( \
+        doc, u'rss/channel/item/blip:user')
+    metadata.description = xpath_text( \
+        doc, u'rss/channel/item/blip:puredescription')
+
+    keywordtext = xpath_text( \
+        doc, u'rss/channel/item/media:keywords') or ''
+    metadata.tags = set([x.strip()
+                         for x in keywordtext.split(',') if x.strip()])
+
+@adapter(str)
+@implementer(IVideoMetadataLookup)
+def bliptv_metadata_lookup(url):
+    """Retrieve metadata information regarding a bliptv video url."""
+
+    data = VideoMetadata()
+    rss = remote_content(_rss_url(url))
+    _populate_bliptv_data(rss, data)
+
+    return data

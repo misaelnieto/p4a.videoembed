@@ -1,3 +1,4 @@
+import urllib2
 from xml.dom import minidom
 from xml.sax import saxutils
 from urlparse import urlsplit
@@ -108,3 +109,11 @@ def squeeze_xml(xml):
     for piece in xml.split():
         new_xml += ' ' + piece
     return new_xml.strip()
+
+def remote_content(url):
+    """Retrieve the remote HTTP content for the given video url."""
+    host, path, query, fragment = break_url(url)
+    fin = urllib2.urlopen(url)
+    content = fin.read()
+    fin.close()
+    return content
