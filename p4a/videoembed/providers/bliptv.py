@@ -24,16 +24,17 @@ def bliptv_check(url):
       False
       >>> bliptv_check('http://blip.tv/file/1234')
       True
+      >>> bliptv_check('http://www.blip.tv/file/1234/')
+      True
 
     """
 
     host, path, query, fragment = break_url(url)
-    if host.endswith('blip.tv'):
-        pieces = path.split('/')
-        if len(pieces) == 3 \
-               and pieces[0] == '' \
-               and pieces[1] == 'file' \
-               and pieces[2].isdigit():
+    if host == 'blip.tv' or host.endswith('.blip.tv'):
+        pieces = [x for x in path.split('/') if x]
+        if len(pieces) == 2 \
+               and pieces[0] == 'file' \
+               and pieces[1].isdigit():
             return True
     return False
 
