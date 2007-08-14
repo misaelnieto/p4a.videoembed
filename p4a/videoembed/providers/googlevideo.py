@@ -1,7 +1,8 @@
 import urllib2
 from xml.dom import minidom
 from urlparse import urlunsplit
-from p4a.videoembed.utils import break_url, xpath_text, xpath_attr
+from p4a.videoembed.utils import (break_url, xpath_text,
+                                  xpath_attr, remote_content)
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IMediaURL
