@@ -30,9 +30,15 @@ def _break_url(url):
     query_elems = {}
     # Put the query elems in a dict
     for pair in query.split('&'):
-        pair = pair.split('=')
-        if pair and pair[0]:
-            query_elems[pair[0]] = pair[-1]
+        pos = pair.find('=')
+        if pos > -1:
+            key = pair[:pos]
+            value = pair[pos+1:]
+        else:
+            key = pair
+            value = ''
+        if key:
+            query_elems[key] = value
     return host, path, query_elems, fragment
 
 # We make this method cache its results because it will be called
