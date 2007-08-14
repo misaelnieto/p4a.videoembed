@@ -124,11 +124,11 @@ def _populate_bliptv_data(rss, metadata):
       ...         Random Video
       ...       </title>
       ...       <blip:user>someuser</blip:user>
-      ...       <blip:picture>http://someurl.com/somefile.jpg</blip:picture>
       ...       <blip:puredescription>
       ...         This is a random description.
       ...       </blip:puredescription>
       ...       <media:keywords>abc, def</media:keywords>
+      ...       <media:thumbnail url="http://someurl.com/somefile.jpg" />
       ...     </item>
       ...   </channel>
       ... </rss>
@@ -150,8 +150,8 @@ def _populate_bliptv_data(rss, metadata):
 
     """
     doc = minidom.parseString(rss)
-    metadata.thumbnail_url = xpath_text( \
-        doc, u'rss/channel/item/blip:picture')
+    metadata.thumbnail_url = xpath_attr( \
+        doc, u'rss/channel/item/media:thumbnail', 'url')
     metadata.title = xpath_text( \
         doc, u'rss/channel/item/title')
     metadata.author = xpath_text( \
