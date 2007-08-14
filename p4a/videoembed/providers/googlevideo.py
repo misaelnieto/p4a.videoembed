@@ -30,14 +30,20 @@ def google_check(url):
 
 google_check.index = 400
 
-def _get_google_rss(url):
-    """Retrieve the remote RSS XML for the given video url."""
+def _rss_url(url):
+    """Return RSS url for the video url.
+
+      >>> _rss_url('http://video.google.ca/?docid=foo')
+      'http://video.google.ca/videofeed?docid=foo'
+
+      >>> _rss_url('http://video.google.ca/videoplay?docid=3758555597736903081&q=plone&total=86&start=0&num=10&so=0&type=search&plindex=0')
+      'http://video.google.ca/videofeed?docid=3758555597736903081'
+
+    """
+
     host, path, query, fragment = break_url(url)
     video_id = query['docid']
-    fin = urllib2.urlopen('http://'+host+'/videofeed?docid='+video_id)
-    rss = fin.read()
-    fin.close()
-    return rss
+    return 'http://'+host+'/videofeed?docid='+video_id
 
 def _populate_google_data(rss, metadata):
     """Parse google video rss and pull out the metadata information.
@@ -118,7 +124,7 @@ def google_metadata_lookup(url):
     """Retrieve metadata information regarding a google video url."""
 
     data = VideoMetadata()
-    rss = _get_google_rss(url)
+    rss = remote_content(_rss_url(url))
     _populate_google_data(rss, data)
 
     return data
