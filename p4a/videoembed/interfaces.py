@@ -1,6 +1,6 @@
 from zope.interface import Interface, Attribute
 from zope.interface import implements, directlyProvides
-from zope.schema import Int, List, Text, TextLine
+from zope.schema import Float, Int, List, Text, TextLine
 from zope.schema.interfaces import IText
 
 class IVideoMetadataRetriever(Interface):
@@ -47,6 +47,11 @@ class IVideoMetadata(Interface):
                              required=False,
                              readonly=True)
 
+    duration = Float(title=u'Duration',
+                     description=u'Play time in seconds',
+                     required=False,
+                     readonly=True)
+
 class VideoMetadata(object):
     """Video metadata.
 
@@ -60,22 +65,28 @@ class VideoMetadata(object):
 
     def __init__(self, title=None, author=None,
                  description=None, tags=None,
-                 thumbnail_url=None):
+                 thumbnail_url=None, duration=None):
         self.title = title
         self.author = author
         self.description = description
         self.tags = tags
         self.thumbnail_url = thumbnail_url
+        self.duration = duration
 
     def __str__(self):
         tags = self.tags or []
         tags = ','.join(tags)
+        duration = self.duration
+        if duration is None:
+            duration = ''
         return '<VideoMetadata title=%s; author=%s; description=%s; tags=%s; ' \
-               'thumbnail_url=%s>' % (self.title or '',
-                                      self.author or '',
-                                      self.description or '',
-                                      tags,
-                                      self.thumbnail_url or '')
+               'duration=%s; thumbnail_url=%s>' \
+               % (self.title or '',
+                  self.author or '',
+                  self.description or '',
+                  tags,
+                  str(duration),
+                  self.thumbnail_url or '',)
     __repr__ = __str__
 
 class IEmbedCode(IText):

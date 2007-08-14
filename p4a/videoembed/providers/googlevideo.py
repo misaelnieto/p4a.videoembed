@@ -71,7 +71,8 @@ def _populate_google_data(rss, metadata):
       ...
       ...           Keywords:  eepybird eepy bird
       ...         </media:description>
-      ...         <media:thumbnail height="240" url="http://video.google.com/somepath.jpg" width="320"/>
+      ...         <media:thumbnail url="http://video.google.com/somepath.jpg" width="320"/>
+      ...         <media:content duration="23" />
       ...       </media:group>
       ...     </item>
       ...   </channel>
@@ -91,6 +92,8 @@ def _populate_google_data(rss, metadata):
       u'http://video.google.com/somepath.jpg'
       >>> metadata.author
       u'Jon Doe'
+      >>> metadata.duration
+      23.0
 
     """
     doc = minidom.parseString(rss)
@@ -100,6 +103,15 @@ def _populate_google_data(rss, metadata):
         doc, u'rss/channel/item/media:group/media:title')
     metadata.author = xpath_text( \
         doc, u'rss/channel/item/author')
+
+    duration = xpath_attr( \
+        doc, u'rss/channel/item/media:group/media:content', 'duration')
+    if duration is not None and duration.strip() != '':
+        try:
+            metadata.duration = float(duration)
+        except:
+            # probably wasn't an int, ignoring
+            pass
 
     text = xpath_text( \
         doc, u'rss/channel/item/media:group/media:description')

@@ -67,6 +67,8 @@ def _youtube_metadata_lookup(xml):
       [u'california', u'trip', u'redwoods']
       >>> data.thumbnail_url
       u'http://blah.com/default.jpg'
+      >>> data.duration
+      8.0
 
     """
 
@@ -80,6 +82,15 @@ def _youtube_metadata_lookup(xml):
         doc, u'ut_response/video_details/thumbnail_url')
     metadata.tags = xpath_text(\
         doc, u'ut_response/video_details/tags').split(' ')
+
+    duration = xpath_text( \
+        doc, u'ut_response/video_details/length_seconds')
+    if duration is not None and duration.strip() != '':
+        try:
+            metadata.duration = float(duration)
+        except:
+            # probably wasn't an int, ignoring
+            pass
 
     return metadata
 
