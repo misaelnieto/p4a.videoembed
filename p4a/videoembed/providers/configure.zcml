@@ -90,6 +90,12 @@
   <utility
       component=".superdeluxe_check"
       name="superdeluxe" />
-
+      
+  <adapter
+      name="videodetective"
+      factory=".videodetective_generator" />
+  <utility
+      component=".videodetective_check"
+      name="videodetective" />
 
 </configure>

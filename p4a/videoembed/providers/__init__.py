@@ -354,11 +354,11 @@ def quicktime_generator(url, width):
 
     >>> print quicktime_generator('http://mysite.com/url/to/qt.mov',
     ...                         width=400)
-    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/qt.mov" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="tofit" /><embed src="http://mysite.com/url/to/qt.mov" pluginspage="http://www.apple.com/quicktime/download/" scale="tofit" kioskmode="False" qtsrc="http://mysite.com/url/to/qt.mov" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
+    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/qt.mov" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="aspect" /><embed src="http://mysite.com/url/to/qt.mov" pluginspage="http://www.apple.com/quicktime/download/" scale="aspect" kioskmode="False" qtsrc="http://mysite.com/url/to/qt.mov" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
 
     >>> print quicktime_generator('http://mysite.com/url/to/movie.qt',
     ...                         width=400)
-    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/movie.qt" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="tofit" /><embed src="http://mysite.com/url/to/movie.qt" pluginspage="http://www.apple.com/quicktime/download/" scale="tofit" kioskmode="False" qtsrc="http://mysite.com/url/to/movie.qt" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
+    <object codebase="http://www.apple.com/qtactivex/qtplugin.cab" width="400" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" height="340"><param name="src" value="http://mysite.com/url/to/movie.qt" /><param name="controller" value="True" /><param name="cache" value="False" /><param name="autoplay" value="False" /><param name="kioskmode" value="False" /><param name="scale" value="aspect" /><embed src="http://mysite.com/url/to/movie.qt" pluginspage="http://www.apple.com/quicktime/download/" scale="aspect" kioskmode="False" qtsrc="http://mysite.com/url/to/movie.qt" cache="False" width="400" height="340" controller="True" type="video/quicktime" autoplay="False"></embed></object>
 
     """
     tag = []
@@ -372,10 +372,10 @@ def quicktime_generator(url, width):
     tag.append('<param name="cache" value="False" />')
     tag.append('<param name="autoplay" value="False" />')
     tag.append('<param name="kioskmode" value="False" />')
-    tag.append('<param name="scale" value="tofit" />')
+    tag.append('<param name="scale" value="aspect" />')
     tag.append('<embed src="%s" '
                'pluginspage="http://www.apple.com/quicktime/download/" '
-               'scale="tofit" kioskmode="False" '
+               'scale="aspect" kioskmode="False" '
                'qtsrc="%s" cache="False" width="%s" height="%s" '
                'controller="True" type="video/quicktime" '
                'autoplay="False"></embed>'%(url, url, width, height))
@@ -502,4 +502,47 @@ def superdeluxe_generator(url, width):
                                                                   height))
     tag.append('</embed>')
     tag.append('</object>')
+    return u''.join(tag)
+
+
+#video detective
+VIDEO_DET = re.compile('P(\d+).htm$')
+@provider(IURLChecker)
+def videodetective_check(url):
+    host, path, query, fragment = break_url(url)
+    if host.endswith('videodetective.com') and (VIDEO_DET.search(path) or
+                                                'publishedid' in query):
+        return True
+    return False
+
+videodetective_check.index = 1600
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def videodetective_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print videodetective_generator('http://www.videodetective.com/movies/GET_SMART/trailer/P00479443.htm', width=400)
+    <embed src="http://www.videodetective.com/codes/flvcodeplayer.swf" width="400" height="325" allowfullscreen="true" flashvars="&file=479443&height=325&width=400&autostart=false&shuffle=false" />
+    >>> print videodetective_generator('http://www.videodetective.com/titledetails.aspx?publishedid=479443', width=400)
+    <embed src="http://www.videodetective.com/codes/flvcodeplayer.swf" width="400" height="325" allowfullscreen="true" flashvars="&file=479443&height=325&width=400&autostart=false&shuffle=false" />
+
+    """
+    tag = []
+    host, path, query, fragment = break_url(url)
+    height = int(round(0.813*width))
+
+    video_id = query.get('publishedid', None)
+    if video_id is None:
+        match = VIDEO_DET.search(path)
+        if match:
+            video_id = int(match.groups()[0])
+        else:
+            return
+    player_url = 'http://www.videodetective.com/codes/flvcodeplayer.swf'
+    tag.append('<embed src="%s" width="%s" height="%s" allowfullscreen="true" '
+               'flashvars="&file=%s&height=%s&width=%s'
+               '&autostart=false&shuffle=false" />'%(player_url, width,
+                                                     height, video_id,
+                                                     height, width))
     return u''.join(tag)
