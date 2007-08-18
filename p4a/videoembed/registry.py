@@ -14,6 +14,61 @@ from p4a.videoembed.interfaces import ILinkProvider
 from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IURLType
 from p4a.videoembed.interfaces import IMediaURL
+from p4a.videoembed.interfaces import IVideoMetadataLookup
+from p4a.videoembed.interfaces import IVideoMetadataRetriever
+
+class VideoMetadataRetriever(object):
+    """A simple registry that will return video metadata.
+
+    Using a retriever is as simple as instantiating it and asking for
+    metadata.  But we have to make sure a IURLType utilility is available
+    first.
+
+      >>> from zope.interface import directlyProvides, implements
+      >>> from zope.component import provideUtility, provideAdapter
+      >>> provideUtility(findURLType, provides=IURLType)
+
+      >>> retriever = VideoMetadataRetriever()
+      >>> retriever.get_metadata('http://blah.com') is None
+      True
+
+    In orer for the retrieval to really work there must be some initial
+    components configured.
+
+      >>> test_check = lambda url: url.startswith('http://blah.com')
+      >>> directlyProvides(test_check, IURLChecker)
+      >>> provideUtility(test_check, provides=IURLChecker, name='test')
+
+    Of course getting metadata will still return None since there hasn't
+    been any lookups registered.
+
+      >>> retriever.get_metadata('http://blah.com') is None
+      True
+
+    Now we register a lookup that knows what to do.
+
+      >>> from p4a.videoembed.interfaces import VideoMetadata
+      >>> def test_lookup(url):
+      ...     return VideoMetadata(thumbnail_url=url+'?thumbnail=boo')
+      >>> directlyProvides(test_lookup, IVideoMetadataLookup)
+      >>> provideAdapter(test_lookup, adapts=(str,),
+      ...                provides=IVideoMetadataLookup, name='test')
+
+      >>> retriever.get_metadata('http://blah.com')
+      <VideoMetadata ... thumbnail_url=http://blah.com?thumbnail=boo>
+
+    """
+    implements(IVideoMetadataRetriever)
+
+    def get_metadata(self, url):
+        name = getUtility(IURLType)(url)
+        if name is None:
+            return None
+
+        return queryAdapter(url,
+                            IVideoMetadataLookup,
+                            name=name,
+                            default=None)
 
 @provider(IURLType)
 def findURLType(url):

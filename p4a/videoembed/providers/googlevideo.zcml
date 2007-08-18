@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      factory=".googlevideo.google_metadata_lookup"
+      name="googlevideo" />
+  <adapter
+      name="googlevideo"
+      factory=".googlevideo.google_generator" />
+  <utility
+      component=".googlevideo.google_check"
+      name="googlevideo" />
+
+</configure>

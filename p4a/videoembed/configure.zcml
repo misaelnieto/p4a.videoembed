@@ -2,6 +2,7 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser">
 
+  <utility factory=".registry.VideoMetadataRetriever" />
   <utility factory=".registry.EmbedCodeConverterUtility" />
   <utility component=".registry.findURLType" />
 
@@ -17,138 +18,7 @@
 
   <adapter factory=".registry.mediaURLConverter" />
 
-  
-  <adapter
-      factory=".converters.youtube_generator"
-      name="youtube" />
-  <adapter
-      factory=".converters.youtube_mediaurl"
-      name="youtube" />
-  <utility
-      component=".converters.youtube_check"
-      name="youtube" />
-
-  <adapter
-      name="onerevver"
-      factory=".converters.onerevver_generator" />
-  <adapter
-      factory=".converters.onerevver_mediaurl"
-      name="onerevver" />
-  <utility
-      component=".converters.onerevver_check"
-      name="onerevver" />
-
-  <adapter
-      factory=".converters.revver_generator"
-      name="revver" />
-  <utility
-      component=".converters.revver_check"
-      name="revver" />
-
-  <adapter
-      name="googlevideo"
-      factory=".converters.google_generator" />
-  <utility
-      component=".converters.google_check"
-      name="googlevideo" />
-
-  <adapter
-      name="vimeo"
-      factory=".converters.vimeo_generator" />
-  <utility
-      component=".converters.vimeo_check"
-      name="vimeo" />
-
-  <adapter
-      name="vmix"
-      factory=".converters.vmix_generator" />
-  <utility
-      component=".converters.vmix_check"
-      name="vmix" />
-
-  <adapter
-      name="yahoovideo"
-      factory=".converters.yahoo_generator" />
-  <utility
-      component=".converters.yahoo_check"
-      name="yahoovideo" />
-
-  <adapter
-      name="flashvideo"
-      factory=".converters.flv_generator" />
-  <utility
-      component=".converters.flv_check"
-      name="flashvideo" />
-
-  <adapter
-      name="ifilm"
-      factory=".converters.ifilm_generator" />
-  <utility
-      component=".converters.ifilm_check"
-      name="ifilm" />
-
-  <adapter
-      name="myspace"
-      factory=".converters.myspace_generator" />
-  <utility
-      component=".converters.myspace_check"
-      name="myspace" />
-
-  <adapter
-      name="metacafe"
-      factory=".converters.metacafe_generator" />
-  <utility
-      component=".converters.metacafe_check"
-      name="metacafe" />
-
-  <adapter
-      name="collegehumor"
-      factory=".converters.collegehumor_generator" />
-  <utility
-      component=".converters.collegehumor_check"
-      name="collegehumor" />
-
-  <adapter
-      name="veoh"
-      factory=".converters.veoh_generator" />
-  <utility
-      component=".converters.veoh_check"
-      name="veoh" />
-
-  <adapter
-      name="quicktime"
-      factory=".converters.quicktime_generator" />
-  <utility
-      component=".converters.quicktime_check"
-      name="quicktime" />
-
-  <adapter
-      name="vspot"
-      factory=".converters.vspot_generator" />
-  <utility
-      component=".converters.vspot_check"
-      name="vspot" />
-
-  <adapter
-      name="liveleak"
-      factory=".converters.liveleak_generator" />
-  <utility
-      component=".converters.liveleak_check"
-      name="liveleak" />
-
-  <adapter
-      name="superdeluxe"
-      factory=".converters.superdeluxe_generator" />
-  <utility
-      component=".converters.superdeluxe_check"
-      name="superdeluxe" />
-
-  <adapter
-      name="videodetective"
-      factory=".converters.videodetective_generator" />
-  <utility
-      component=".converters.videodetective_check"
-      name="videodetective" />
+  <include package=".providers" />
 
   <browser:page
       for="*"
