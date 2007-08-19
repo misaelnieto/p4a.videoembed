@@ -72,7 +72,11 @@ def xpath_node(node, path, prefix=''):
             if n is not None:
                 return n
 
-def node_value(node):
+DEFAULT_ENTITIES = {
+    '&quot;': '"'
+    }
+
+def node_value(node, entities=DEFAULT_ENTITIES):
     """Return the flattened body value of the given node.  If the given
     node has elements as children, they will be converted to textual XML.
 
@@ -90,12 +94,18 @@ def node_value(node):
       >>> node_value(node)
       u'abc<bar>def</bar>'
 
+    Make sure entities are getting processed properly.
+
+      >>> node = parseString('<foo>&gt;&quot;abc&quot;&lt;</foo>').childNodes[0]
+      >>> node_value(node)
+      u'>"abc"<'
+
     """
 
     v = ''
     for x in node.childNodes:
         v += x.toxml().strip()
-    return saxutils.unescape(''.join(v.split('\n')))
+    return saxutils.unescape(''.join(v.split('\n')), entities)
 
 def xpath_text(node, path):
     node = xpath_node(node, path)
