@@ -2,6 +2,10 @@
     xmlns="http://namespaces.zope.org/zope">
 
   <adapter
+      factory=".revver.revver_metadata_lookup"
+      name="onerevver" />
+
+  <adapter
       name="onerevver"
       factory=".revver.onerevver_generator" />
   <adapter

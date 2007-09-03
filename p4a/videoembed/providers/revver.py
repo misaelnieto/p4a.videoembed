@@ -1,10 +1,11 @@
-from xml.dom import minidom
+from xmlrpclib import Server
 import re
 from urlparse import urlunsplit
 import urllib2
 from urllib import quote, quote_plus
-from zope.interface import implements, implementer
-from zope.component import adapts, adapter
+from zope.interface import implements, implementer, Interface
+from zope.schema import TextLine
+from zope.component import adapts, adapter, queryUtility
 from p4a.videoembed.utils import break_url
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
@@ -12,6 +13,17 @@ from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IMediaURL
 from p4a.videoembed.interfaces import IVideoMetadataLookup
 from p4a.videoembed.interfaces import VideoMetadata
+
+import logging
+logger = logging.getLogger('p4a.videoembed.providers.revver')
+
+class IRevverConfig(Interface):
+    """Configuration for accessing the api of revver."""
+
+    username = TextLine(title=u'API Username',
+                         required=True)
+    password = TextLine(title=u'API Password',
+                        required=True)
 
 # one.revver.com
 @provider(IURLChecker)
@@ -115,6 +127,72 @@ class onerevver_mediaurl(object):
         self.mimetype = 'video/quicktime'
         self.media_url = 'http://media.revver.com/qt;sharer=%s/%s.mov'%(
                                                          affiliate_id, video_id)
+
+def get_video_id(url):
+    """Return the video_id of the video for the particular url.
+
+      >>> get_video_id('http://one.revver.com/watch/1')
+      1
+
+      >>> get_video_id('http://one.revver.com/1/badpath')
+      Traceback (most recent call last):
+      ValueError: invalid literal for int(): badpath
+
+    """
+
+    host, path, query, fragment = break_url(url)
+    video_id = int(path.split('/')[-1])
+
+    return video_id
+
+def _get_metadata(url, username, password):
+    """Retrieve the metadata for the given url with username and password.
+
+      >>> _get_metadata('http://one.revver.com/watch/1', '', '')
+      Traceback (most recent call last):
+      Fault: <Fault 3: 'Authentication failed'>
+
+    """
+
+    video_id = get_video_id(url)
+
+    api_url = 'https://api.revver.com/xml/1.0?login=%s&passwd=%s' % (username,
+                                                                     password)
+
+    api = Server(api_url)
+    results = api.video.find({'ids': [video_id]},
+                             ['id', 'title', 'author',
+                              'description', 'thumbnailUrl',
+                              'keywords', 'duration'])
+    result = results[0]
+
+    metadata = VideoMetadata()
+    metadata.title = unicode(result['title'], 'utf-8')
+    metadata.author = unicode(result['author'], 'utf-8')
+    metadata.description = unicode(result['description'], 'utf-8')
+    metadata.thumbnail_url = result['thumbnailUrl']
+    metadata.tags = [unicode(x, 'utf-8') for x in result['keywords']]
+    metadata.duration = float(result['duration'])
+
+    return metadata
+
+@adapter(str)
+@implementer(IVideoMetadataLookup)
+def revver_metadata_lookup(url):
+    """Retrieve metadata information regarding a youtube video url.
+
+      >>> revver_metadata_lookup('http://one.revver.com/watch/1') is None
+      True
+
+    """
+
+    config = queryUtility(IRevverConfig)
+    if config is None:
+        logger.warn("No IRevverConfig utility found, remote metadata "
+                    "retrieval disabled")
+        return None
+
+    return _get_metadata(url, config.username, config.password)
 
 # The original revver QT embed
 @provider(IURLChecker)
