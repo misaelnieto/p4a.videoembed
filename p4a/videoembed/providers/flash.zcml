@@ -1,0 +1,18 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      name="flashflv"
+      factory=".flash.flv_generator" />
+  <utility
+      component=".flash.flv_check"
+      name="flashflv" />
+
+  <adapter
+      name="flashswf"
+      factory=".flash.swf_generator" />
+  <utility
+      component=".flash.swf_check"
+      name="flashswf" />
+
+</configure>

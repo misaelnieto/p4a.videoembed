@@ -2,7 +2,7 @@
     xmlns="http://namespaces.zope.org/zope">
 
   <include file="bliptv.zcml" />
-  <include file="genericflv.zcml" />
+  <include file="flash.zcml" />
   <include file="googlevideo.zcml" />
   <include file="revver.zcml" />
   <include file="youtube.zcml" />

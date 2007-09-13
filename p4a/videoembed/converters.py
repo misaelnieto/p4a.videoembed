@@ -8,8 +8,8 @@ from p4a.videoembed.providers.youtube import (youtube_check,
                                               youtube_mediaurl)
 from p4a.videoembed.providers.googlevideo import (google_check,
                                                   google_generator)
-from p4a.videoembed.providers.genericflv import (flv_check,
-                                                 flv_generator)
+from p4a.videoembed.providers.flash import (flv_check,
+                                            flv_generator)
 from p4a.videoembed.providers.revver import (onerevver_check,
                                              onerevver_generator,
                                              revver_check,

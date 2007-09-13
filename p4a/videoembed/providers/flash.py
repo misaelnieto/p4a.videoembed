@@ -6,7 +6,7 @@ from urllib import quote, quote_plus
 from zope.interface import implements, implementer, Interface
 from zope.schema import TextLine
 from zope.component import adapts, adapter, queryUtility
-from p4a.videoembed.utils import break_url
+from p4a.videoembed.utils import break_url, squeeze_xml
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
@@ -83,3 +83,56 @@ def flv_generator(url, width):
                                                video_url))
     tag.append('</embed>')
     return u''.join(tag)
+
+# Any swf
+@provider(IURLChecker)
+def swf_check(url):
+    """Check to see if the given url matches.
+
+      >>> swf_check('http://someplace.com')
+      False
+      >>> swf_check('http://someplace.com/file.swf')
+      True
+
+    """
+
+    host, path, query, fragment = break_url(url)
+    if path.endswith('.swf'):
+        return True
+    return False
+
+swf_check.index = 10100
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def swf_generator(url, width):
+    ''' A quick check for the right url, this one requires a direct
+    swf link:
+
+      >>> print swf_generator('http://somehost.com/file/get/SomeVideo.swf', width=400)
+      <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="400" height="320" id="Untitled-1" align="middle"> <param name="allowScriptAccess" value="sameDomain" /> <param name="movie" value="http://somehost.com/file/get/SomeVideo.swf" /> <param name="quality" value="high" /> <param name="bgcolor" value="#ffffff" /> <embed src="http://somehost.com/file/get/SomeVideo.swf" quality="high" bgcolor="#ffffff" width="400" height="320" name="video" align="middle" allowScriptAccess="sameDomain" allowNetworking="all" type="application/x-shockwave-flash" pluginspage="http://www.adobe.com/go/getflashplayer" /> </object>
+
+    '''
+
+    tag = []
+    height = int(round(0.8*width))
+
+    return squeeze_xml(u'''
+  <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+          codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" 
+          width="%(width)s" height="%(height)s" id="Untitled-1" align="middle">
+    <param name="allowScriptAccess" value="sameDomain" />
+    <param name="movie" value="%(file_url)s" />
+    <param name="quality" value="high" />
+    <param name="bgcolor" value="#ffffff" />
+    <embed src="%(file_url)s" quality="high" bgcolor="#ffffff"
+           width="%(width)s" height="%(height)s" name="video"
+           align="middle" allowScriptAccess="sameDomain"
+           allowNetworking="all"
+           type="application/x-shockwave-flash"
+           pluginspage="http://www.adobe.com/go/getflashplayer" />
+  </object>
+''' % {'file_url': url,
+       'width': unicode(width),
+       'height': unicode(height)})
+

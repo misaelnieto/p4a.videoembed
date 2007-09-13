@@ -20,7 +20,7 @@ def test_suite():
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.providers.bliptv',
                          optionflags=doctest.ELLIPSIS),
-            DocTestSuite('p4a.videoembed.providers.genericflv',
+            DocTestSuite('p4a.videoembed.providers.flash',
                          optionflags=doctest.ELLIPSIS,
                          setUp=testing.setUp,
                          tearDown=testing.tearDown),
