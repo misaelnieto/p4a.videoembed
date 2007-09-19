@@ -31,8 +31,6 @@ def vimeo_generator(url, width):
 
     >>> print vimeo_generator('http://www.vimeo.com/clip:18281', width=400)
     <embed src="http://www.vimeo.com/moogaloop.swf?clip_id=18281" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
-    >>> print vimeo_generator('http://www.vimeo.com/18281', width=400)
-    <embed src="http://www.vimeo.com/moogaloop.swf?clip_id=18281" quality="best" scale="exactfit" width="400" height="300" type="application/x-shockwave-flash"></embed>
     """
     tag = []
     host, path, query, fragment = break_url(url)
@@ -43,13 +41,6 @@ def vimeo_generator(url, width):
         video_id = int(path.split('%3A')[-1])
     except ValueError:
         pass
-    if not video_id:
-        # take the last path element as the video id
-        video_id = path.split('/')[-1]
-        try:
-            video_id = int(video_id)
-        except ValueError:
-            pass
     if not video_id:
         return
     embed_url = urlunsplit(('http', host, 'moogaloop.swf',
