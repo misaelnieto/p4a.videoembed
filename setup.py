@@ -1,14 +1,20 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1'
+version = '1.0beta1'
 
-setup(name='videoembed',
+setup(name='p4a.videoembed',
       version=version,
       description="A registry and adapters for converting urls for various video sharing sites into embed codes.",
       long_description="""\
 """,
-      classifiers=[], # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[
+          'Framework :: Zope3',
+          'Programming Language :: Python',
+          'License :: OSI Approved :: GNU General Public License (GPL)',
+          'Topic :: Software Development :: Libraries :: Python Modules',
+          'Topic :: Multimedia :: Video'
+          ],
       keywords='Embedded Video Plone',
       author='Alec Mitchell',
       author_email='apm13@columbia.edu',
