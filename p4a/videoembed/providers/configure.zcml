@@ -6,6 +6,7 @@
   <include file="googlevideo.zcml" />
   <include file="revver.zcml" />
   <include file="youtube.zcml" />
+  <include file="ustreamtv.zcml" />
 
   <adapter
       name="vimeo"

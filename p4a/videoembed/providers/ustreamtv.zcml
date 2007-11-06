@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      name="ustreamtv"
+      factory=".ustreamtv.ustreamtv_generator" />
+  <utility
+      name="ustreamtv"
+      component=".ustreamtv.ustreamtv_check" />
+
+</configure>
