@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.0beta1'
+version = '1.0'
 
 setup(name='p4a.videoembed',
       version=version,
