@@ -1,5 +1,6 @@
 import urllib2
 from xml.dom import minidom
+from xml.parsers import expat
 from urlparse import urlunsplit
 from p4a.videoembed.utils import break_url, xpath_text
 from p4a.videoembed.interfaces import provider
@@ -72,7 +73,12 @@ def _youtube_metadata_lookup(xml):
 
     """
 
-    doc = minidom.parseString(xml)
+    try:
+        doc = minidom.parseString(xml)
+    except expat.ExpatError:
+        logger.exception('Error while trying to parse RSS XML - "%s"' % xml)
+        return None
+
     metadata = VideoMetadata()
     metadata.title = xpath_text(doc, u'ut_response/video_details/title')
     metadata.author = xpath_text(doc, u'ut_response/video_details/author')
