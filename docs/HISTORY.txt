@@ -1,6 +1,8 @@
 Changelog for videoembed
 
-    (name of developer listed in brackets)
+videoembed - 1.1b1 (2008-02-14)
+
+    - added partial ustream.tv support [Rocky Burt]
 
 videoembed - 1.0alpha1 (2007-04-29)
 
