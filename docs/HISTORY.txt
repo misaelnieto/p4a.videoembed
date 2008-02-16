@@ -2,7 +2,9 @@ Changelog for videoembed
 
 videoembed - 1.1b1 (2008-02-14)
 
-    - added partial ustream.tv support [Rocky Burt]
+    - added partial ustream.tv support [Rocky Burt] r1672
+
+    - added code to extract URL to FLV file from Youtube and Blip.tv (Ross Patterson) r1875 and r1879
 
 videoembed - 1.0alpha1 (2007-04-29)
 
