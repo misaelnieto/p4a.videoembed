@@ -99,4 +99,11 @@
       component=".videodetective_check"
       name="videodetective" />
 
+  <adapter
+      name="brightcove"
+      factory=".brightcove_generator" />
+  <utility
+      component=".brightcove_check"
+      name="brightcove" />
+
 </configure>

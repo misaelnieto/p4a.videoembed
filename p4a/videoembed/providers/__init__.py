@@ -555,3 +555,52 @@ def videodetective_generator(url, width):
                                                      height, video_id,
                                                      height, width))
     return u''.join(tag)
+
+#brightcove
+@provider(IURLChecker)
+def brightcove_check(url):
+    """Check to see if the given url matches.
+
+      >>> brightcove_check('http://someplace.com')
+      False
+      >>> brightcove_check('http://www.brightcove.tv/title.jsp?title=1320139248')
+      True
+      >>> brightcove_check('http://link.brightcove.com/services/link/bcpid1156009944/bclid1197714939/bctid1336727916')
+      True
+
+    """
+
+    host, path, query, fragment = break_url(url)
+    if host.endswith('brightcove.tv') and 'title' in query:
+        return True
+    if host.endswith('link.brightcove.com'):
+        return True
+    return False
+
+brightcove_check.index = 1700
+
+@adapter(str, int)
+@implementer(IEmbedCode)
+def brightcove_generator(url, width):
+    """ A quick check for the right url
+
+    >>> print brightcove_generator('http://www.brightcove.tv/title.jsp?title=1320139248', width=400)
+    <embed src='http://www.brightcove.tv/playerswf' bgcolor='#FFFFFF' flashVars='initVideoId=1320139248&servicesURL=http://www.brightcove.tv&viewerSecureGatewayURL=https://www.brightcove.tv&cdnURL=http://admin.brightcove.com&autoStart=false' base='http://admin.brightcove.com' name='bcPlayer' width='400' height='339' allowFullScreen='true' allowScriptAccess='always' seamlesstabbing='false' type='application/x-shockwave-flash' swLiveConnect='true' pluginspage='http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash'></embed>
+
+    """
+    tag = []
+    host, path, query, fragment = break_url(url)
+    height = int(round(0.847*width))
+
+    video_id = None
+    if host.endswith('brightcove.tv'):
+        video_id = query.get('title', None)
+        tag.append('<embed src="http://www.brightcove.tv/playerswf" bgcolor="#FFFFFF" flashVars="initVideoId=%s&servicesURL=http://www.brightcove.tv&viewerSecureGatewayURL=https://www.brightcove.tv&cdnURL=http://admin.brightcove.com&autoStart=false" base="http://admin.brightcove.com" name="bcPlayer" width="%s" height="%s" allowFullScreen="true" allowScriptAccess="always" seamlesstabbing="false" type="application/x-shockwave-flash" swLiveConnect="true" pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></embed>'
+                   % (video_id, width, height))
+
+    elif host.endswith('link.brightcove.com'):
+        video_id = path.split('bctid')[-1]
+        tag.append('<embed src="http://services.brightcove.com/services/viewer/federated_f8/717113456" bgcolor="#FFFFFF" flashVars="videoId=%s&playerId=717113456&viewerSecureGatewayURL=https://services.brightcove.com/services/amfgateway&servicesURL=http://services.brightcove.com/services&cdnURL=http://admin.brightcove.com&domain=embed&autoStart=false&" base="http://admin.brightcove.com" name="flashObj" width="%s" height="%s" seamlesstabbing="false" type="application/x-shockwave-flash" swLiveConnect="true" pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></embed>'
+                   % (video_id, width, height))
+
+    return u''.join(tag)
