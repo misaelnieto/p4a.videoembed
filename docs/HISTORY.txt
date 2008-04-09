@@ -1,5 +1,9 @@
 Changelog for videoembed
 
+videoembed - 1.1 (2008-04-09)
+
+    - added Brightcove support [Nate Aune]
+
 videoembed - 1.1b1 (2008-02-14)
 
     - added partial ustream.tv support [Rocky Burt] r1672
