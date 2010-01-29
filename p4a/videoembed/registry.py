@@ -5,7 +5,7 @@ from zope.component import queryAdapter
 from zope.component import getUtility
 from zope.component import getUtilitiesFor
 from zope.component import adapter
-from zope.component.exceptions import ComponentLookupError
+from zope.component import ComponentLookupError
 from zope.interface import implements, implementer
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode

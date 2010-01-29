@@ -1,5 +1,9 @@
 Changelog for videoembed
 
+videoembed - 1.2 Unreleased
+
+    - fix ComponentLookupError import from zope.component [toutpt]
+
 videoembed - 1.1 (2008-04-09)
 
     - added Brightcove support [Nate Aune]
