@@ -1,16 +1,11 @@
-from xml.dom import minidom
 import re
 from urlparse import urlunsplit
-import urllib2
-from urllib import quote, quote_plus
-from zope.interface import implements, implementer
-from zope.component import adapts, adapter
+from urllib import quote
+from zope.interface import implementer
+from zope.component import adapter
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
-from p4a.videoembed.interfaces import IMediaURL
-from p4a.videoembed.interfaces import IVideoMetadataLookup
-from p4a.videoembed.interfaces import VideoMetadata
 
 from p4a.videoembed.utils import break_url
 

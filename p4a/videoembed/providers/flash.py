@@ -1,18 +1,10 @@
-from xml.dom import minidom
-import re
-from urlparse import urlunsplit
-import urllib2
-from urllib import quote, quote_plus
-from zope.interface import implements, implementer, Interface
+from zope.interface import implementer, Interface
 from zope.schema import TextLine
-from zope.component import adapts, adapter, queryUtility
+from zope.component import adapter, queryUtility
 from p4a.videoembed.utils import break_url, squeeze_xml
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
 from p4a.videoembed.interfaces import IURLChecker
-from p4a.videoembed.interfaces import IMediaURL
-from p4a.videoembed.interfaces import IVideoMetadataLookup
-from p4a.videoembed.interfaces import VideoMetadata
 
 # Any flv (only accepts direct urls to flv videos!) uses blip's player
 @provider(IURLChecker)
@@ -114,7 +106,6 @@ def swf_generator(url, width):
 
     '''
 
-    tag = []
     height = int(round(0.8*width))
 
     return squeeze_xml(u'''

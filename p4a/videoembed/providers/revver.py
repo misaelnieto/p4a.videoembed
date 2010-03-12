@@ -1,8 +1,6 @@
 from xmlrpclib import Server
 import re
 from urlparse import urlunsplit
-import urllib2
-from urllib import quote, quote_plus
 from zope.interface import implements, implementer, Interface
 from zope.schema import TextLine
 from zope.component import adapts, adapter, queryUtility

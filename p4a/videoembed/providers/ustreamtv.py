@@ -1,5 +1,5 @@
-from zope.interface import Interface, implements, implementer
-from zope.component import adapts, adapter, queryUtility
+from zope.interface import implementer
+from zope.component import adapter
 from p4a.videoembed.interfaces import provider, IURLChecker, IEmbedCode
 from p4a.videoembed.utils import break_url
 

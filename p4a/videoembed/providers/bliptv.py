@@ -1,18 +1,15 @@
 import urllib
-import urllib2
 from xml.dom import minidom
-from urlparse import urlunsplit
 from p4a.videoembed.utils import (break_url, xpath_text,
                                   xpath_attr, squeeze_xml,
                                   remote_content)
 from p4a.videoembed.interfaces import provider
 from p4a.videoembed.interfaces import IEmbedCode
-from p4a.videoembed.interfaces import IMediaURL
 from p4a.videoembed.interfaces import IURLChecker
 from p4a.videoembed.interfaces import IVideoMetadataLookup
 from p4a.videoembed.interfaces import VideoMetadata
-from zope.interface import implements, implementer
-from zope.component import adapts, adapter
+from zope.interface import implementer
+from zope.component import adapter
 
 @provider(IURLChecker)
 def bliptv_check(url):
@@ -100,7 +97,6 @@ def bliptv_generator(url, width):
     True
 
     """
-    tag = []
     host, path, query, fragment = break_url(url)
     height = int(round(0.815*width))
 

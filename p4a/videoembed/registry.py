@@ -1,5 +1,3 @@
-from BTrees.IOBTree import IOBTree
-from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.component import queryAdapter
 from zope.component import getUtility
