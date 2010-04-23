@@ -38,6 +38,7 @@ Currently, adapters are provided for the following video sharing sites:
 * VH1 http://vh1.com
 * Live Leak http://liveleak.com
 * Video detective http://videodetective.com
+* Dailymotion http://www.dailymotion.com
 
 But adding more is as simple as creating a function that checks if the url
 is appropriate for the site you want, and another to convert it into an
