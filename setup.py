@@ -5,8 +5,8 @@ version = '1.2'
 setup(name='p4a.videoembed',
       version=version,
       description="A registry and adapters for converting urls for various video sharing sites into embed codes.",
-      long_description="""\
-""",
+      long_description=open("README.txt").read() + "\n" +
+                       open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
           'Framework :: Zope3',
           'Programming Language :: Python',

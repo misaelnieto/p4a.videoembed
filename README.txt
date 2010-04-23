@@ -21,16 +21,23 @@ At the heart of this product is a set of named adapters.  These adapters adapt
 a string (url) and an integer (width) and return a unicode embed code.
 Currently, adapters are provided for the following video sharing sites:
 
-YouTube
-Google Video
-Yahoo Video
-Revver (both the original site and one.revver.com)
-Vimeo
-Vmix
-Blip.tv
-iFilm
-MySpace
-MetaCafe
+* YouTube http://www.youtube.com/
+* Google Video http://video.google.fr
+* Yahoo Video http://video.yahoo.com/
+* Revver (both http://revver.com and one.revver.com)
+* Vimeo http://vimeo.com
+* Vmix http://vmix.com
+* Blip.tv http://blip.tv
+* iFilm http://ifilm.com
+* MySpace http://vids.myspace.com
+* MetaCafe http://metacafe.com
+* College Humor http://collegehumor.com
+* Veoh http://veoh.com
+* flash video (.flv) using http://www.longtailvideo.com/players/jw-flv-player
+* (.mov .qt .m4v) ># The original revver QT embed
+* VH1 http://vh1.com
+* Live Leak http://liveleak.com
+* Video detective http://videodetective.com
 
 But adding more is as simple as creating a function that checks if the url
 is appropriate for the site you want, and another to convert it into an
