@@ -3,6 +3,8 @@ Changelog for videoembed
 videoembed - 1.2 Unreleased
 
     - fix ComponentLookupError import from zope.component [toutpt]
+    - removed unused imports reported by pyflakes [tom_gross]
+    - add partial Dailymotion support [toutpt]
 
 videoembed - 1.1 (2008-04-09)
 

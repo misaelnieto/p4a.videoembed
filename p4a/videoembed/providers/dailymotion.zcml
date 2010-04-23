@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <adapter
+      name="dailymotion"
+      factory=".dailymotion.dailymotion_generator" />
+  <utility
+      component=".dailymotion.dailymotion_check"
+      name="dailymotion" />
+
+</configure>

@@ -32,6 +32,8 @@ def test_suite():
                          optionflags=doctest.ELLIPSIS),
             DocTestSuite('p4a.videoembed.providers.youtube',
                          optionflags=doctest.ELLIPSIS),
+            DocTestSuite('p4a.videoembed.providers.dailymotion',
+                         optionflags=doctest.ELLIPSIS),
             ))
 
 if __name__ == '__main__':
