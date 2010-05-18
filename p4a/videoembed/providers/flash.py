@@ -49,6 +49,7 @@ def flv_generator(url, width):
     IFlvPlayerConfig utility.
 
       >>> from zope.component import provideUtility
+      >>> from zope.interface import implements
       >>> class FlvPlayerConfig(object):
       ...     implements(IFlvPlayerConfig)
       ...     player_url = "http://somehost.com/someplayer.swf"
