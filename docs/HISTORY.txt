@@ -1,6 +1,6 @@
 Changelog for videoembed
 
-videoembed - 1.2 Unreleased
+videoembed - 1.2 (2009-05-17)
 
     - fix ComponentLookupError import from zope.component [toutpt]
     - removed unused imports reported by pyflakes [tom_gross]
