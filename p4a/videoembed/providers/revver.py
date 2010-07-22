@@ -134,7 +134,8 @@ def get_video_id(url):
 
       >>> get_video_id('http://one.revver.com/1/badpath')
       Traceback (most recent call last):
-      ValueError: invalid literal for int(): badpath
+        ...
+      ValueError: invalid literal for int() with base 10: 'badpath'
 
     """
 
